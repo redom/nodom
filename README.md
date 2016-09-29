@@ -7,7 +7,7 @@ npm install nodom
 ```
 
 ## usage
-```
+```js
 const { Document, render } = require('nodom')
 const document = new Document()
 const { el, mount } = require('redom')
