@@ -39,4 +39,22 @@ tape('getElementsByTagName', t => {
     t.equal(res.length, 4);
     t.deepEqual(res, [p1, p2, p3, p4]);
   });
+
+  t.test('* matches all tags in traversal order', t => {
+    t.plan(2);
+
+    const res = doc.getElementsByTagName('*');
+
+    t.equal(res.length, 9);
+    t.deepEqual(res, [doc.documentElement, doc.head, doc.body, div1, p1, p2, div2, p3, p4]);
+  });
+
+  t.test('* matches all tags below the query root element', t => {
+    t.plan(2);
+
+    const res = div2.getElementsByTagName('*');
+
+    t.equal(res.length, 2);
+    t.deepEqual(res, [p3, p4]);
+  });
 });
