@@ -6,9 +6,7 @@
   "jsnext": "lib/index.js",
   "scripts": {
     "build": "rollup -n nodom -c -f umd lib/index -o dist/nodom.js",
-    "uglify": "uglifyjs dist/nodom.js -cmo dist/nodom.min.js",
-    "pretest": "npm run build",
-    "test": "node test/*.spec.js"
+    "uglify": "uglifyjs dist/nodom.js -cmo dist/nodom.min.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +21,6 @@
   "devDependencies": {
     "rollup": "~0.36.1",
     "rollup-plugin-buble": "~0.14.0",
-    "tape": "^4.6.2",
     "uglify-js": "~2.7.3"
   }
 }
