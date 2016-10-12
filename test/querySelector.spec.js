@@ -11,6 +11,7 @@ tape('querySelector', t => {
 
   const div1 = section.appendChild(new HTMLElement({ tagName: 'div', id: 'hello', className: 'beep' }));
   const div2 = section.appendChild(new HTMLElement({ tagName: 'div', className: 'boop' }));
+  const div3 = section.appendChild(new HTMLElement({ tagName: 'div', className: 'bzzt' }));
 
   const p1 = div1.appendChild(new HTMLElement({ tagName: 'p', className: 'beep boop' }));
   const p2 = div1.appendChild(new HTMLElement({ tagName: 'p', className: 'hello' }));
@@ -18,10 +19,9 @@ tape('querySelector', t => {
   const p4 = div2.appendChild(new HTMLElement({ tagName: 'p', className: 'hello-world' }));
 
   t.test('returns null with no results', t => {
-    t.plan(1);
-    const res = doc.querySelector('p.blooper');
-
-    t.equal(res, null);
+    t.plan(2);
+    t.equal(doc.querySelector('p.blooper'), null);
+    t.equal(doc.querySelector('div div'), null);
   });
 
   t.test('select with tagName', t => {
@@ -56,7 +56,7 @@ tape('querySelector', t => {
     t.plan(1);
     const res = doc.querySelector('section p');
 
-    t.equal(res, section);
+    t.equal(res, p1);
   });
 
   t.test('immediate child selector', t => {
@@ -66,11 +66,18 @@ tape('querySelector', t => {
     t.equal(res, p1);
   });
 
-  t.test('sibling selector', t => {
+  t.test('adjacent sibling selector', t => {
     t.plan(1);
     const res = doc.querySelector('p + p');
 
     t.equal(res, p2);
+  });
+
+  t.test('general sibling selector', t => {
+    t.plan(1);
+    const res = doc.querySelector('div ~ div.bzzt');
+
+    t.equal(res, div3);
   });
 
   t.test('subtree query', t => {
