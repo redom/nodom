@@ -1,6 +1,7 @@
 const tape = require('tape');
 
-const { Document, HTMLElement } = require('../dist/nodom');
+import { Document } from '../lib/document';
+import { HTMLElement } from '../lib/htmlelement';
 
 tape('getElementsByClassName', t => {
   const doc = new Document();

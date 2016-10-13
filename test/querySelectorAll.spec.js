@@ -1,8 +1,9 @@
-const tape = require('tape');
+import test from 'tape';
 
-const { Document, HTMLElement } = require('../dist/nodom');
+import { Document } from '../lib/document';
+import { HTMLElement } from '../lib/htmlelement';
 
-tape('querySelectorAll', t => {
+test('querySelectorAll', t => {
   const doc = new Document();
 
   doc.documentElement.className = 'up-doc';

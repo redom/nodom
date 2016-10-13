@@ -1,6 +1,7 @@
-const test = require('tape');
-const { HTMLElement } = require('../../dist/nodom');
-const { elementMatches } = require('../../lib/utils/elementMatches');
+import test from 'tape';
+
+import { HTMLElement } from '../../lib/htmlelement';
+import { elementMatches } from '../../lib/utils/elementMatches';
 
 const tags = [
   new HTMLElement({ tagName: 'p' }),

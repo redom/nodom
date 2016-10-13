@@ -1,6 +1,7 @@
-const tape = require('tape');
+import tape from 'tape';
 
-const { Document, HTMLElement } = require('../dist/nodom');
+import { Document } from '../lib/document';
+import { HTMLElement } from '../lib/htmlelement';
 
 tape('getElementsByClassName', t => {
   const randomId = () => (Math.random() * 1e8 | 0).toString(32);
