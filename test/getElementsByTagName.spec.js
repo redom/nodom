@@ -1,8 +1,9 @@
-const tape = require('tape');
+import test from 'tape';
 
-const { Document, HTMLElement } = require('../dist/nodom');
+import { Document } from '../lib/document';
+import { HTMLElement } from '../lib/htmlelement';
 
-tape('getElementsByTagName', t => {
+test('getElementsByTagName', t => {
   const doc = new Document();
 
   const div1 = doc.body.appendChild(new HTMLElement({ tagName: 'div' }));

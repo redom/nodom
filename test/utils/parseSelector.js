@@ -1,5 +1,6 @@
-const test = require('tape');
-const { parseSelector } = require('../../lib/utils/parseSelector');
+import test from 'tape';
+
+import { parseSelector } from '../../lib/utils/parseSelector';
 
 test('utils/parseSelector', t => {
   t.deepEqual(parseSelector('p'), [{
