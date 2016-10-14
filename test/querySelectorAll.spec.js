@@ -2,7 +2,7 @@ const tape = require('tape');
 
 const { Document, HTMLElement } = require('../dist/nodom');
 
-tape('querySelector', t => {
+tape('querySelectorAll', t => {
   const doc = new Document();
 
   doc.documentElement.className = 'up-doc';
@@ -18,72 +18,72 @@ tape('querySelector', t => {
   const p3 = div2.appendChild(new HTMLElement({ tagName: 'p', id: 'world', className: 'beep boop' }));
   const p4 = div2.appendChild(new HTMLElement({ tagName: 'p', className: 'hello-world' }));
 
-  t.test('returns null with no results', t => {
+  t.test('returns empty array with no results', t => {
     t.plan(2);
-    t.equal(doc.querySelector('p.blooper'), null);
-    t.equal(doc.querySelector('div div'), null);
+    t.deepEqual(doc.querySelectorAll('p.blooper'), []);
+    t.deepEqual(doc.querySelectorAll('div div'), []);
   });
 
   t.test('select with tagName', t => {
     t.plan(1);
-    const res = doc.querySelector('p');
+    const res = doc.querySelectorAll('p');
 
-    t.equal(res, p1);
+    t.deepEqual(res, [p1, p2, p3, p4]);
   });
 
   t.test('select with className', t => {
     t.plan(1);
-    const res = doc.querySelector('.hello');
+    const res = doc.querySelectorAll('.hello');
 
-    t.equal(res, p2);
+    t.deepEqual(res, [p2]);
   });
 
   t.test('select with id', t => {
     t.plan(1);
-    const res = doc.querySelector('#world');
+    const res = doc.querySelectorAll('#world');
 
-    t.equal(res, p3);
+    t.deepEqual(res, [p3]);
   });
 
   t.test('select with tagName and className', t => {
     t.plan(1);
-    const res = doc.querySelector('p.hello-world');
+    const res = doc.querySelectorAll('p.hello-world');
 
-    t.equal(res, p4);
+    t.deepEqual(res, [p4]);
   });
 
   t.test('descendant selector', t => {
     t.plan(1);
-    const res = doc.querySelector('section p');
+    const res = doc.querySelectorAll('section p');
 
-    t.equal(res, p1);
+    t.deepEqual(res, [p1, p2, p3, p4]);
   });
 
   t.test('immediate child selector', t => {
     t.plan(1);
-    const res = doc.querySelector('div > p');
+    const res = doc.querySelectorAll('div > p');
 
-    t.equal(res, p1);
+    t.deepEqual(res, [p1, p2, p3, p4]);
   });
 
   t.test('adjacent sibling selector', t => {
     t.plan(1);
-    const res = doc.querySelector('p + p');
+    const res = doc.querySelectorAll('p + p');
 
-    t.equal(res, p2);
+    t.deepEqual(res, [p2, p4]);
   });
 
   t.test('general sibling selector', t => {
     t.plan(1);
-    const res = doc.querySelector('div ~ div.bzzt');
+    const res = doc.querySelectorAll('div ~ div.bzzt');
 
-    t.equal(res, div3);
+    t.deepEqual(res, [div3]);
   });
 
   t.test('subtree query', t => {
     t.plan(1);
-    const res = section.querySelector('p');
+    const res = section.querySelectorAll('p');
 
-    t.equal(res, p1);
+    t.deepEqual(res, [p1, p2, p3, p4]);
   });
 });

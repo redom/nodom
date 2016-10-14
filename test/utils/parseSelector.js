@@ -80,5 +80,17 @@ test('utils/parseSelector', t => {
     relation: null
   }]);
 
+  t.deepEqual(parseSelector('p ~ p'), [{
+    tagName: 'p',
+    id: null,
+    classNames: null,
+    relation: '~'
+  }, {
+    tagName: 'p',
+    id: null,
+    classNames: null,
+    relation: null
+  }]);
+
   t.end();
 });
