@@ -7,7 +7,7 @@
 function ClassList (el) {
   var this$1 = this;
 
-  var classNames = (this.className && this.className.split(' ')) || []
+  var classNames = (el.className && el.className.split(' ')) || []
 
   this.length = classNames.length
 
@@ -71,6 +71,127 @@ TextNode.prototype.constructor = TextNode
 
 TextNode.prototype.render = function () {
   return this.textContent
+}
+
+var combinators = ' >+~'
+var ws = new RegExp('\\s*([' + combinators + '])\\s*', 'g')
+var terms = new RegExp('(^|[' + combinators + '])([^' + combinators + ']+)', 'ig')
+
+var id = new RegExp('#[^.' + combinators + ']+', 'g')
+var tagName = new RegExp('^(?:[' + combinators + '])?([^#.' + combinators + '\\[\\]]+)')
+var classNames = new RegExp('\\.[^.' + combinators + ']+', 'g')
+
+var fst = function (a) { return a != null ? a[0] : null; }
+var snd = function (a) { return Array.isArray(a) && a.length > 1 ? a[1] : null; }
+var map = function (fn) { return function (as) { return Array.isArray(as) ? as.map(fn) : null; }; }
+
+var trimFirst = function (s) { return s.substr(1); }
+var trimId = function (id) { return id != null ? trimFirst(id) : null; }
+var trimClassNames = map(trimFirst)
+
+function parseSelector (selector) {
+  if (selector == null || selector.length === 0) {
+    return null
+  }
+
+  return selector
+    .replace(ws, '$1')
+    .match(terms)
+    .map(function (term, i) { return ({
+      tagName: (snd(term.match(tagName)) || '').toLowerCase(),
+      id: trimId(fst(term.match(id))),
+      classNames: trimClassNames(term.match(classNames)),
+      relation: i > 0 ? term[0] : null
+    }); })
+    .reverse()
+}
+
+function elementMatches (el, selector) {
+  if (el == null) {
+    return false
+  }
+
+  if (selector.tagName && el.tagName !== selector.tagName) {
+    return false
+  }
+
+  if (selector.id && el.id !== selector.id) {
+    return false
+  }
+
+  if (selector.classNames && !selector.classNames.every(function (cn) { return el.classList.contains(cn); })) {
+    return false
+  }
+
+  return true
+}
+
+function isMatching (el, terms) {
+  var curr = el
+
+  var loop = function ( i ) {
+    switch (terms[i - 1].relation) {
+      case ' ':
+        // descendant, walk up the tree until a matching node is found
+        do {
+          curr = curr.parentNode
+        } while (curr != null && !elementMatches(curr, terms[i]))
+        break
+      case '>':
+        // immediate child
+        if (!elementMatches(curr.parentNode, terms[i])) {
+          return { v: false }
+        }
+        break
+      case '+':
+        // adjacent sibling selector
+        if (!elementMatches(curr.parentNode.childNodes.find(function (c) { return c.nextSibling === curr; }), terms[i])) {
+          return { v: false }
+        }
+        break
+      case '~':
+        // general sibling selector
+        if (!curr.parentNode.childNodes.slice(0, curr.parentNode.childNodes.indexOf(curr)).some(function (el) { return elementMatches(el, terms[i]); })) {
+          return { v: false }
+        }
+        break
+    }
+  };
+
+  for (var i = 1; i < terms.length; i++) {
+    var returned = loop( i );
+
+    if ( returned ) return returned.v;
+  }
+
+  return curr != null
+}
+
+function querySelectorAll (query, root, takeN) {
+  var terms = parseSelector(query)
+
+  if (terms == null) {
+    return []
+  }
+
+  var init = root.getElementsByTagName(terms[0].tagName || '*')
+  var ret = []
+
+  for (var i = 0; i < init.length; i++) {
+    if (elementMatches(init[i], terms[0]) && isMatching(init[i], terms)) {
+      ret.push(init[i])
+
+      if (takeN != null && ret.length >= takeN) {
+        break
+      }
+    }
+  }
+
+  return ret
+}
+
+function querySelector (query, root) {
+  return querySelectorAll(query, root, 1)[0] || null
 }
 
 var voidElementLookup = 'area base br col command embed hr img input keygen link meta param source track wbr'.split(' ').reduce(function (lookup, tagName) {
@@ -204,6 +325,7 @@ HTMLElement.prototype.appendChild = function (child) {
     }
   }
   this.childNodes.push(child)
+  return child
 }
 
 HTMLElement.prototype.insertBefore = function (child, before) {
@@ -248,6 +370,50 @@ HTMLElement.prototype.removeChild = function (child) {
       this$1.childNodes.splice(i, 1)
     }
   }
+}
+
+HTMLElement.prototype.getElementsByTagName = function (tagName) {
+  var lowerTagName = tagName.toLowerCase()
+
+  if (this.isVoidEl || this.childNodes.length === 0) {
+    return []
+  }
+
+  return this.childNodes.reduce(function (results, child) {
+    if (lowerTagName === '*' || child.tagName === lowerTagName) {
+      return results.concat(child, child.getElementsByTagName(lowerTagName))
+    }
+
+    return results.concat(child.getElementsByTagName(lowerTagName))
+  }, [])
+}
+
+HTMLElement.prototype.getElementsByClassName = function (classNames) {
+  if (!Array.isArray(classNames)) {
+    return this.getElementsByClassName(
+      String(classNames)
+        .split(' ')
+        .map(function (cn) { return cn.trim(); })
+        .filter(function (cn) { return cn.length > 0; }))
+  } else if (classNames.length === 0) {
+    return []
+  }
+
+  return this.childNodes.reduce(function (results, child) {
+    var childMatches = classNames.every(function (cn) { return child.classList.contains(cn); })
+
+    return (childMatches
+      ? results.concat(child, child.getElementsByClassName(classNames))
+      : results.concat(child.getElementsByClassName(classNames)))
+  }, [])
+}
+
+HTMLElement.prototype.querySelector = function (query) {
+  return querySelector(query, this)
+}
+
+HTMLElement.prototype.querySelectorAll = function (query) {
+  return querySelectorAll(query, this)
 }
 
 Object.defineProperties(HTMLElement.prototype, {
@@ -315,8 +481,9 @@ function childRenderer (child) {
 }
 
 function Document () {
-  this.head = this.createElement('head')
-  this.body = this.createElement('body')
+  this.documentElement = this.createElement('html')
+  this.head = this.documentElement.appendChild(this.createElement('head'))
+  this.body = this.documentElement.appendChild(this.createElement('body'))
   this.nodeType = 9
 }
 
@@ -334,6 +501,76 @@ Document.prototype.createElementNS = function (ns, tagName) {
 
 Document.prototype.createTextNode = function (text) {
   return new TextNode(text)
+}
+
+Document.prototype.getElementsByTagName = function (tagName) {
+  var lowerTagName = tagName.toLowerCase()
+
+  if (lowerTagName === 'html') {
+    return [this.documentElement]
+  }
+
+  return (lowerTagName === '*'
+    ? [this.documentElement].concat(this.documentElement.getElementsByTagName(lowerTagName))
+    : this.documentElement.getElementsByTagName(lowerTagName))
+}
+
+Document.prototype.getElementsByClassName = function (classNames) {
+  var this$1 = this;
+
+  if (!Array.isArray(classNames)) {
+    return this.getElementsByClassName(
+      String(classNames)
+        .split(' ')
+        .map(function (cn) { return cn.trim(); })
+        .filter(function (cn) { return cn.length > 0; }))
+  } else if (classNames.length === 0) {
+    return []
+  }
+
+  var documentNodeMatches = classNames.every(function (cn) { return this$1.documentElement.classList.contains(cn); })
+
+  return this.documentElement.childNodes.reduce(function (results, child) {
+    var childMatches = classNames.every(function (cn) { return child.classList.contains(cn); })
+
+    return (childMatches
+      ? results.concat(child, child.getElementsByClassName(classNames))
+      : results.concat(child.getElementsByClassName(classNames)))
+  }, documentNodeMatches ? [this.documentElement] : [])
+}
+
+Document.prototype.getElementById = function (id) {
+  if (this.documentElement.id === id) {
+    return this.documentElement
+  }
+
+  function matchIdInNodes (id, nodes) {
+    var nextContext = []
+
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === id) {
+        return nodes[i]
+      }
+
+      nextContext = nextContext.concat(nodes[i].childNodes)
+    }
+
+    if (nextContext.length > 0) {
+      return matchIdInNodes(id, nextContext)
+    }
+
+    return null
+  }
+
+  return matchIdInNodes(id, this.documentElement.childNodes)
+}
+
+Document.prototype.querySelector = function (query) {
+  return querySelector(query, this)
+}
+
+Document.prototype.querySelectorAll = function (query) {
+  return querySelectorAll(query, this)
 }
 
 function render (view, inner) {

@@ -1,61 +1,59 @@
-const tape = require('tape');
+const tape = require('tape')
 
-import { Document } from '../lib/document';
-import { HTMLElement } from '../lib/htmlelement';
+import { Document } from '../lib/document'
+import { HTMLElement } from '../lib/htmlelement'
 
 tape('getElementsByClassName', t => {
-  const doc = new Document();
+  const doc = new Document()
 
-  doc.documentElement.className = 'up-doc';
+  doc.documentElement.className = 'up-doc'
 
-  const div1 = doc.body.appendChild(new HTMLElement({ tagName: 'div', className: 'beep' }));
-  const div2 = doc.body.appendChild(new HTMLElement({ tagName: 'div', className: 'boop' }));
+  const div1 = doc.body.appendChild(new HTMLElement({ tagName: 'div', className: 'beep' }))
+  const div2 = doc.body.appendChild(new HTMLElement({ tagName: 'div', className: 'boop' }))
 
-  const p1 = div1.appendChild(new HTMLElement({ tagName: 'p', className: 'beep boop' }));
-  const p2 = div1.appendChild(new HTMLElement({ tagName: 'p', className: 'hello' }));
-  const p3 = div2.appendChild(new HTMLElement({ tagName: 'p', className: 'beep boop' }));
-  const p4 = div2.appendChild(new HTMLElement({ tagName: 'p', className: 'hello' }));
+  const p1 = div1.appendChild(new HTMLElement({ tagName: 'p', className: 'beep boop' }))
+  const p2 = div2.appendChild(new HTMLElement({ tagName: 'p', className: 'beep boop' }))
 
   t.test('empty query is always empty result', t => {
-    t.plan(1);
+    t.plan(1)
 
-    const res = doc.getElementsByClassName('');
+    const res = doc.getElementsByClassName('')
 
-    t.equal(res.length, 0);
-  });
+    t.equal(res.length, 0)
+  })
 
   t.test('single className matches', t => {
-    t.plan(2);
+    t.plan(2)
 
-    const res = doc.getElementsByClassName('beep');
+    const res = doc.getElementsByClassName('beep')
 
-    t.equal(res.length, 3);
-    t.deepEqual(res, [div1, p1, p3]);
-  });
+    t.equal(res.length, 3)
+    t.deepEqual(res, [div1, p1, p2])
+  })
 
   t.test('all classNames must match', t => {
-    t.plan(2);
+    t.plan(2)
 
-    const res = doc.getElementsByClassName('beep boop');
+    const res = doc.getElementsByClassName('beep boop')
 
-    t.equal(res.length, 2);
-    t.deepEqual(res, [p1, p3]);
-  });
+    t.equal(res.length, 2)
+    t.deepEqual(res, [p1, p2])
+  })
 
   t.test('descends from element', t => {
-    t.plan(2);
+    t.plan(2)
 
-    const res = div1.getElementsByClassName('beep');
+    const res = div1.getElementsByClassName('beep')
 
-    t.equal(res.length, 1);
-    t.deepEqual(res, [p1]);
-  });
+    t.equal(res.length, 1)
+    t.deepEqual(res, [p1])
+  })
 
   t.test('matches documentElement', t => {
-    t.plan(1);
+    t.plan(1)
 
-    const res = doc.getElementsByClassName('up-doc');
+    const res = doc.getElementsByClassName('up-doc')
 
-    t.deepEqual(res, [doc.documentElement]);
+    t.deepEqual(res, [doc.documentElement])
   })
-});
+})

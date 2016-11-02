@@ -5,9 +5,10 @@
   "main": "dist/nodom.js",
   "jsnext": "lib/index.js",
   "scripts": {
-    "build": "rollup -n nodom -c -f umd lib/index -o dist/nodom.js",
+    "build": "npm run teststandard && rollup -n nodom -c -f umd lib/index -o dist/nodom.js",
     "uglify": "uglifyjs dist/nodom.js -cmo dist/nodom.min.js",
-    "test": "buble-tape-runner test/*.js test/utils/*.js"
+    "teststandard": "standard 'lib/**/*.js' 'test/**/*.js'",
+    "test": "npm run teststandard && buble-tape-runner test/*.js test/utils/*.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "buble-tape-runner": "^1.0.3",
     "rollup": "~0.36.1",
     "rollup-plugin-buble": "~0.14.0",
+    "standard": "~8.5.0",
     "tape": "^4.6.2",
     "uglify-js": "~2.7.3"
   }
