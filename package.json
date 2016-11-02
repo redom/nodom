@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "description": "fake DOM for RE:DOM",
   "main": "dist/nodom.js",
-  "jsnext": "lib/index.js",
+  "jsnext:main": "lib/index.js",
   "scripts": {
     "build": "npm run teststandard && rollup -n nodom -c -f umd lib/index -o dist/nodom.js",
     "uglify": "uglifyjs dist/nodom.js -cmo dist/nodom.min.js",
