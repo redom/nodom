@@ -47,4 +47,12 @@ test('HTMLElement', t => {
     t.equal(el.classList.contains('beep'), true)
     t.equal(el.classList.contains('boop'), true)
   })
+
+  t.test('has blur, click, and focus methods', t => {
+    t.plan(3)
+
+    const el = new HTMLElement();
+
+    ['blur', 'click', 'focus'].forEach(fn => t.equal(typeof el[fn], 'function'))
+  })
 })
