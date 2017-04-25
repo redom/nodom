@@ -55,4 +55,14 @@ test('HTMLElement', t => {
 
     ['blur', 'click', 'focus'].forEach(fn => t.equal(typeof el[fn], 'function'));
   });
+
+  t.test('should produce correct HTML', t => {
+    t.plan(1);
+
+    const el = new HTMLElement();
+
+    el.classList.add('beep boop');
+
+    t.equals(el.outerHTML, '<div class="beep boop"></div>');
+  });
 });

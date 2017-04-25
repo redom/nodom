@@ -1,7 +1,7 @@
-const tape = require('tape');
-
 import { Document } from '../lib/document';
 import { HTMLElement } from '../lib/htmlelement';
+
+const tape = require('tape');
 
 tape('getElementsByClassName', t => {
   const doc = new Document();

@@ -1,7 +1,7 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.nodom = global.nodom || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.nodom = global.nodom || {})));
 }(this, (function (exports) { 'use strict';
 
 function ClassList (el) {
@@ -245,7 +245,7 @@ HTMLElement.prototype.render = function (inner) {
   var hasChildren = false;
   var content = '';
 
-  for (var key in this) {
+  for (var key in this$1) {
     if (key === 'isMounted' || !this$1.hasOwnProperty(key)) {
       continue;
     }
@@ -253,14 +253,12 @@ HTMLElement.prototype.render = function (inner) {
       if (this$1.childNodes.length) {
         hasChildren = true;
       }
-    } else if (key === 'className') {
-      attributes.push('class="' + this$1[key] + '"');
     } else if (key === '_innerHTML') {
       content = this$1._innerHTML;
     } else if (key === 'style') {
       var styles = '';
 
-      for (var styleName in this.style) {
+      for (var styleName in this$1.style) {
         styles += styleName + ':' + this$1.style[styleName] + ';';
       }
 
@@ -273,6 +271,10 @@ HTMLElement.prototype.render = function (inner) {
       }
       attributes.push(key + '="' + this$1[key] + '"');
     }
+  }
+
+  if (this.className) {
+    attributes.push('class="' + this.className + '"');
   }
 
   if (inner) {
