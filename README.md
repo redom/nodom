@@ -9,11 +9,11 @@ npm install nodom
 
 ## usage
 ```js
-const { Document, render } = require('nodom');
-const document = new Document();
+const { Document } = require('nodom');
+global.document = new Document();
 const { el, mount } = require('redom');
 
 mount(document.body, el('h1', 'Hello world!'));
 
-console.log(render(document.body)); // <body><h1>Hello world!</h1></body>
+console.log(document.body.outerHTML); // <body><h1>Hello world!</h1></body>
 ```
