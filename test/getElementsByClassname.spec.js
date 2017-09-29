@@ -1,5 +1,5 @@
 import { Document } from '../lib/document';
-import { HTMLElement } from '../lib/htmlelement';
+import { HTMLElement } from '../lib/element';
 
 const tape = require('tape');
 

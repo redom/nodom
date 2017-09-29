@@ -1,7 +1,7 @@
 import test from 'tape';
 
 import { Document } from '../lib/document';
-import { HTMLElement } from '../lib/htmlelement';
+import { HTMLElement } from '../lib/element';
 
 test('querySelectorAll', t => {
   const doc = new Document();

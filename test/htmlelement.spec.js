@@ -1,5 +1,5 @@
 import test from 'tape';
-import { HTMLElement } from '../lib/htmlelement';
+import { HTMLElement } from '../lib/element';
 
 test('HTMLElement', t => {
   t.test('initially has an ampty className', t => {

@@ -223,6 +223,18 @@ function HTMLElement (options) {
   });
 }
 
+var SVGElement = (function (HTMLElement) {
+  function SVGElement () {
+    HTMLElement.apply(this, arguments);
+  }if ( HTMLElement ) SVGElement.__proto__ = HTMLElement;
+  SVGElement.prototype = Object.create( HTMLElement && HTMLElement.prototype );
+  SVGElement.prototype.constructor = SVGElement;
+
+  
+
+  return SVGElement;
+}(HTMLElement));
+
 HTMLElement.prototype = Object.create(Node.prototype);
 HTMLElement.prototype.constructor = HTMLElement;
 
@@ -511,9 +523,15 @@ Document.prototype.createElement = function (tagName) {
 };
 
 Document.prototype.createElementNS = function (ns, tagName) {
-  return new HTMLElement({
-    tagName: tagName
-  });
+  if (tagName === 'http://www.w3.org/2000/svg') {
+    return new SVGElement({
+      tagName: tagName
+    });
+  } else {
+    return new HTMLElement({
+      tagName: tagName
+    });
+  }
 };
 
 Document.prototype.createTextNode = function (text) {
@@ -598,6 +616,7 @@ function render (view, inner) {
 
 exports.Document = Document;
 exports.HTMLElement = HTMLElement;
+exports.SVGElement = SVGElement;
 exports.Node = Node;
 exports.render = render;
 exports.TextNode = TextNode;

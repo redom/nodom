@@ -1,6 +1,6 @@
 import test from 'tape';
 
-import { HTMLElement } from '../../lib/htmlelement';
+import { HTMLElement } from '../../lib/element';
 import { elementMatches } from '../../lib/utils/elementMatches';
 
 const tags = [

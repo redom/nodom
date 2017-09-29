@@ -1,7 +1,7 @@
 import tape from 'tape';
 
 import { Document } from '../lib/document';
-import { HTMLElement } from '../lib/htmlelement';
+import { HTMLElement } from '../lib/element';
 
 tape('getElementsByClassName', t => {
   const randomId = () => (Math.random() * 1e8 | 0).toString(32);
