@@ -55,21 +55,93 @@ ClassList.prototype.toString = function () {
   return this.join(' ').trim();
 };
 
-function Node () {}
+function Attributes() { }
+Attributes.prototype = {};
+
+
+function Dataset() { }
+Dataset.prototype = {};
+
+function dashToCamel(dashedName) {
+    var dashPositions = [];
+    var dashedChars = dashedName.split('');
+    dashedChars.map(function (e, i) {
+        if (e === '-') dashPositions.push(i);
+    });
+    var camelChars = dashedName.split('');
+    dashPositions.map((e, offset) => {
+        var capLetter = dashedChars[e + 1].toUpperCase();
+        camelChars.splice(e - offset, 2, capLetter);
+    });
+    return camelChars.join('');
+}
+
+function camelToDash(camelName) {
+    var capPositions = [];
+    var camelChars = camelName.split('');
+    camelChars.map(function (e, i) {
+        if (/^[A-Z]/.test(e)) capPositions.push(i);
+    });
+    var dashedChars = camelName.split('');
+    capPositions.map((e) => {
+        dashedChars.splice(e, 1, '-' + camelChars[e].toLowerCase());
+    });
+    return dashedChars.join('');
+}
+
+function Node () {
+    this.childNodes = [];
+}
 
 Node.prototype.cloneNode = function (deep) {
-  var Class = Object.getPrototypeOf(this);
+    if (!deep || 'childNodes' in this && Array.isArray(this.childNodes) && this.childNodes.length === 0) {
+        var Class = Object.getPrototypeOf(this);
+        return new Class.constructor(this);
+    } else {
+        Class = Object.getPrototypeOf(this);
+        var object = new Class.constructor(this);
 
-  return new Class.constructor(this);
+        var childNodes = [];
+
+        this.childNodes.map((e) => childNodes.push(e.cloneNode(true)));
+
+        object.childNodes = childNodes;
+        return object;
+    }
 };
 
+Object.defineProperty(Node.prototype, 'nodeValue', {
+    get: function () { return null; }
+});
+
+Object.defineProperty(Node.prototype, 'children', {
+    get: function () { return this.childNodes; }
+});
+
+Object.defineProperty(Node.prototype, 'firstChild', {
+    get: function () { return this.childNodes[0]; }
+});
+
+Object.defineProperty(Node.prototype, 'lastChild', {
+    get: function () { return this.childNodes[this.childNodes.length - 1]; }
+});
+
+Object.defineProperty(Node.prototype, 'nodeName', {
+    get: function () { return this.tagName; }
+});
+
 function TextNode (text) {
+  Node.apply(this);
   this.nodeType = 3;
   this.textContent = text;
 }
 
 TextNode.prototype = Object.create(Node.prototype);
 TextNode.prototype.constructor = TextNode;
+
+Object.defineProperty(TextNode.prototype, 'nodeValue', {
+    get: function () { return this.textContent; }
+});
 
 TextNode.prototype.render = function () {
   return this.textContent;
@@ -201,11 +273,54 @@ var voidElementLookup = 'area base br col command embed hr img input keygen link
   return lookup;
 }, {});
 
+function CSSStyleDeclaration() {}
+
+CSSStyleDeclaration.prototype = Object.create({});
+
+CSSStyleDeclaration.prototype.setProperty = function (propertyName, value, priority) {
+    this[dashToCamel(propertyName)] = value;
+};
+
+CSSStyleDeclaration.prototype.valueOf = function () {
+    return this;
+};
+
+CSSStyleDeclaration.prototype.toString = function () {
+    var str = '';
+    for (var p in this) {
+        if (!this.hasOwnProperty(p)) {
+            continue;
+        }
+        str += camelToDash(p) + ': ' +  this[p] + '; ';
+    }
+    return str;
+};
+
+CSSStyleDeclaration.prototype.setValue = function (style) {
+    var list = style.split(';');
+    for (var p of list) {
+        var pair = p.split(':');
+        this[pair[0].trim()] = pair[1].trim();
+    }
+};
+
+Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', {
+    get: function () { return this.toString(); },
+    set: function (text) { this.setValue(text); },
+    enumerable: true
+});
+
+
 function HTMLElement (options) {
   var this$1 = this;
 
-  this.childNodes = [];
-  this.style = {};
+  Node.apply(this);
+
+  this.attributes = new Attributes();
+  this.dataset = new Dataset();
+
+  this.style = new CSSStyleDeclaration();
+
   this.nodeType = 1;
 
   for (var key in options) {
@@ -230,13 +345,22 @@ var SVGElement = (function (HTMLElement) {
   SVGElement.prototype = Object.create( HTMLElement && HTMLElement.prototype );
   SVGElement.prototype.constructor = SVGElement;
 
-  
+
 
   return SVGElement;
 }(HTMLElement));
 
 HTMLElement.prototype = Object.create(Node.prototype);
 HTMLElement.prototype.constructor = HTMLElement;
+
+HTMLElement.prototype.matches = function (query) {
+    var terms = parseSelector(query);
+    if (terms == null || terms.length > 1) {
+        return false;
+    }
+    return elementMatches(this, terms[0]);
+};
+
 
 var noOp = function () { return undefined; };
 var noOpMethods = 'blur click focus';
@@ -258,35 +382,54 @@ HTMLElement.prototype.render = function (inner) {
   var content = '';
 
   for (var key in this$1) {
-    if (key === 'isMounted' || !this$1.hasOwnProperty(key)) {
+    if (key === 'isMounted'
+     || key === 'style'
+     || key === 'attributes'
+     || key === 'dataset'
+     || key === '_classList'
+     || !this$1.hasOwnProperty(key)) {
       continue;
     }
-    if (shouldNotRender[key] || !isVoidEl) {
+    if (shouldNotRender[key]/* || !isVoidEl */) { // FIXME: no need?
       if (this$1.childNodes.length) {
         hasChildren = true;
       }
     } else if (key === '_innerHTML') {
       content = this$1._innerHTML;
-    } else if (key === 'style') {
-      var styles = '';
-
-      for (var styleName in this$1.style) {
-        styles += styleName + ':' + this$1.style[styleName] + ';';
-      }
-
-      if (styles && styles.length) {
-        attributes.push('style="' + styles + '"');
-      }
     } else if (!shouldNotRender[key]) {
       if (typeof this$1[key] === 'function') {
         continue;
       }
-      attributes.push(key + '="' + this$1[key] + '"');
+
+      var value;
+      switch (typeof this$1[key]) {
+          case 'string':
+          case 'number':
+              value = '"' + this$1[key] + '"';
+              break;
+
+          default:
+              // FIXME: is it better to use 'data-${key}' for jQuery .data(key) ?
+              value = "'" + JSON.stringify(this$1[key]) + "'";
+      }
+      attributes.push(key + '=' + value);
     }
   }
 
   if (this.className) {
     attributes.push('class="' + this.className + '"');
+  }
+
+  var cssText = this.style.cssText;
+  if (cssText.length > 0) {
+      attributes.push('style="' + cssText + '"');
+  }
+
+  var attrNames = Object.keys(this.attributes);
+  if (attrNames.length > 0) {
+      attrNames
+        .filter((e) => !(e in ['style', '_classList']))
+        .map((e) => attributes.push(e + '="' + this.attributes[e] + '"'));
   }
 
   if (inner) {
@@ -326,11 +469,44 @@ HTMLElement.prototype.addEventListener = function () {};
 HTMLElement.prototype.removeEventListener = function () {};
 
 HTMLElement.prototype.setAttribute = function (attr, value) {
-  this[attr] = value;
+    switch (attr) {
+        case 'class':
+            this.classList.splice(0, this.classList.length);
+            var classes = value.split(' ');
+            classes.forEach((cls) => this.classList.add(cls));
+            break;
+
+        default:
+            break;
+    }
+
+    var propertyName = attr;
+
+    if (/^data-/.test(attr)) {
+        propertyName = dashToCamel(attr);
+        this.dataset[propertyName] = value;
+
+        Object.defineProperty(this, propertyName, {
+            get: (function (t, a) {
+                return function () { return t.dataset[a]; };
+            })(this, propertyName),
+            enumerable: true
+        });
+    }
+    else if (!this.hasOwnProperty(propertyName)) {
+        Object.defineProperty(this, propertyName, {
+            get: (function (t, a) {
+                return function () { return t.attributes[a]; };
+            })(this, propertyName),
+            enumerable: true
+        });
+    }
+
+    this.attributes[attr] = value;
 };
 
 HTMLElement.prototype.getAttribute = function (attr) {
-  return this[attr];
+    return this.attributes[attr] || this[attr];
 };
 
 HTMLElement.prototype.appendChild = function (child) {
@@ -356,13 +532,18 @@ HTMLElement.prototype.insertBefore = function (child, before) {
     return; // Silently ignored
   }
   child.parentNode = this;
-  for (var i = 0; i < this.childNodes.length; i++) {
-    if (this$1.childNodes[i] === before) {
-      this$1.childNodes.splice(i++, 0, child);
-    } else if (this$1.childNodes[i] === child) {
-      this$1.childNodes.splice(i, 1);
-    }
+  if (before == null) {
+      this$1.childNodes.push(child);
+  } else {
+      for (var i = 0; i < this.childNodes.length; i++) {
+          if (this$1.childNodes[i] === before) {
+              this$1.childNodes.splice(i++, 0, child);
+          } else if (this$1.childNodes[i] === child) {
+              this$1.childNodes.splice(i, 1);
+          }
+      }
   }
+  return child;
 };
 
 HTMLElement.prototype.replaceChild = function (child, replace) {
@@ -401,11 +582,17 @@ HTMLElement.prototype.getElementsByTagName = function (tagName) {
   }
 
   return this.childNodes.reduce(function (results, child) {
-    if (lowerTagName === '*' || child.tagName === lowerTagName) {
-      return results.concat(child, child.getElementsByTagName(lowerTagName));
+    if (child.getElementsByTagName) {
+        if (lowerTagName === '*' || child.tagName === lowerTagName) {
+          return results.concat(child, child.getElementsByTagName(lowerTagName));
+        }
+
+        return results.concat(child.getElementsByTagName(lowerTagName));
+    }
+    else {
+        return results;
     }
 
-    return results.concat(child.getElementsByTagName(lowerTagName));
   }, []);
 };
 
@@ -473,11 +660,6 @@ Object.defineProperties(HTMLElement.prototype, {
       return this.render();
     }
   },
-  firstChild: {
-    get: function () {
-      return this.childNodes[0];
-    }
-  },
   textContent: {
     get: function () {
       return this.childNodes.filter(function (node) {
@@ -517,26 +699,79 @@ function Document () {
 }
 
 Document.prototype.createElement = function (tagName) {
-  return new HTMLElement({
+  var element = new HTMLElement({
     tagName: tagName
   });
+
+  var this$1 = this;
+
+  if (!('ownerDocument' in element)) {
+      Object.defineProperty(element, 'ownerDocument', {
+          enumerable: false,
+          get: () => this$1
+      });
+  }
+
+  return element;
 };
 
 Document.prototype.createElementNS = function (ns, tagName) {
+  var element;
   if (tagName === 'http://www.w3.org/2000/svg') {
-    return new SVGElement({
+    element = new SVGElement({
       tagName: tagName
     });
   } else {
-    return new HTMLElement({
+    element = new HTMLElement({
       tagName: tagName
     });
   }
+
+  var this$1 = this;
+
+  if (!('ownerDocument' in element)) {
+      Object.defineProperty(element, 'ownerDocument', {
+          enumerable: false,
+          get: () => this$1
+      });
+  }
+
+  return element;
 };
 
+Document.prototype.createDocumentFragment = function () {
+    return (new Document()).body;
+}
+
 Document.prototype.createTextNode = function (text) {
-  return new TextNode(text);
+  var textNode = new TextNode(text);
+
+  var this$1 = this;
+
+  if (!('ownerDocument' in textNode)) {
+      Object.defineProperty(textNode, 'ownerDocument', {
+          enumerable: false,
+          get: () => this$1
+      });
+  }
+
+  return textNode;
 };
+
+Document.prototype.implementation = Object.create(null);
+
+Document.prototype.implementation.hasFeature = function (feature, version) {
+    switch (feature) {
+        default:
+            return false;
+    }
+}
+
+Document.prototype.implementation.createHTMLDocument = function (textContent) {
+    var document = new Document();
+    document.outerHTML = textContent;
+    return document;
+}
 
 Document.prototype.getElementsByTagName = function (tagName) {
   var lowerTagName = tagName.toLowerCase();
