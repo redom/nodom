@@ -55,43 +55,15 @@ ClassList.prototype.toString = function () {
   return this.join(' ').trim();
 };
 
-function Attributes() { }
-Attributes.prototype = {};
-
-
-function Dataset() { }
-Dataset.prototype = {};
-
-function dashToCamel(dashedName) {
-    var dashPositions = [];
-    var dashedChars = dashedName.split('');
-    dashedChars.map(function (e, i) {
-        if (e === '-') dashPositions.push(i);
-    });
-    var camelChars = dashedName.split('');
-    dashPositions.map((e, offset) => {
-        var capLetter = dashedChars[e + 1].toUpperCase();
-        camelChars.splice(e - offset, 2, capLetter);
-    });
-    return camelChars.join('');
-}
-
-function camelToDash(camelName) {
-    var capPositions = [];
-    var camelChars = camelName.split('');
-    camelChars.map(function (e, i) {
-        if (/^[A-Z]/.test(e)) capPositions.push(i);
-    });
-    var dashedChars = camelName.split('');
-    capPositions.map((e) => {
-        dashedChars.splice(e, 1, '-' + camelChars[e].toLowerCase());
-    });
-    return dashedChars.join('');
-}
-
 function Node () {
     this.childNodes = [];
 }
+
+Node.prototype.cloneNode = function (deep) {
+  var Class = Object.getPrototypeOf(this);
+
+  return new Class.constructor(this);
+};
 
 Node.prototype.cloneNode = function (deep) {
     if (!deep || 'childNodes' in this && Array.isArray(this.childNodes) && this.childNodes.length === 0) {
@@ -103,7 +75,7 @@ Node.prototype.cloneNode = function (deep) {
 
         var childNodes = [];
 
-        this.childNodes.map((e) => childNodes.push(e.cloneNode(true)));
+        this.childNodes.map(function (e) { return childNodes.push(e.cloneNode(true)); });
 
         object.childNodes = childNodes;
         return object;
@@ -139,13 +111,13 @@ function TextNode (text) {
 TextNode.prototype = Object.create(Node.prototype);
 TextNode.prototype.constructor = TextNode;
 
-Object.defineProperty(TextNode.prototype, 'nodeValue', {
-    get: function () { return this.textContent; }
-});
-
 TextNode.prototype.render = function () {
   return this.textContent;
 };
+
+Object.defineProperty(TextNode.prototype, 'nodeValue', {
+    get: function () { return this.textContent; }
+});
 
 var combinators = ' >+~';
 var ws = new RegExp('\\s*([' + combinators + '])\\s*', 'g');
@@ -163,7 +135,7 @@ var trimFirst = function (s) { return s.substr(1); };
 var trimId = function (id) { return id != null ? trimFirst(id) : null; };
 var trimClassNames = map(trimFirst);
 
-function parseSelector (selector) {
+function parseSelector$1 (selector) {
   if (selector == null || selector.length === 0) {
     return null;
   }
@@ -180,7 +152,7 @@ function parseSelector (selector) {
     .reverse();
 }
 
-function elementMatches (el, selector) {
+function elementMatches$1 (el, selector) {
   if (el == null) {
     return false;
   }
@@ -209,23 +181,23 @@ function isMatching (el, terms) {
         // descendant, walk up the tree until a matching node is found
         do {
           curr = curr.parentNode;
-        } while (curr != null && !elementMatches(curr, terms[i]));
+        } while (curr != null && !elementMatches$1(curr, terms[i]));
         break;
       case '>':
         // immediate child
-        if (!elementMatches(curr.parentNode, terms[i])) {
+        if (!elementMatches$1(curr.parentNode, terms[i])) {
           return { v: false };
         }
         break;
       case '+':
         // adjacent sibling selector
-        if (!elementMatches(curr.parentNode.childNodes.find(function (c) { return c.nextSibling === curr; }), terms[i])) {
+        if (!elementMatches$1(curr.parentNode.childNodes.find(function (c) { return c.nextSibling === curr; }), terms[i])) {
           return { v: false };
         }
         break;
       case '~':
         // general sibling selector
-        if (!curr.parentNode.childNodes.slice(0, curr.parentNode.childNodes.indexOf(curr)).some(function (el) { return elementMatches(el, terms[i]); })) {
+        if (!curr.parentNode.childNodes.slice(0, curr.parentNode.childNodes.indexOf(curr)).some(function (el) { return elementMatches$1(el, terms[i]); })) {
           return { v: false };
         }
         break;
@@ -242,7 +214,7 @@ function isMatching (el, terms) {
 }
 
 function querySelectorAll (query, root, takeN) {
-  var terms = parseSelector(query);
+  var terms = parseSelector$1(query);
 
   if (terms == null) {
     return [];
@@ -252,7 +224,7 @@ function querySelectorAll (query, root, takeN) {
   var ret = [];
 
   for (var i = 0; i < init.length; i++) {
-    if (elementMatches(init[i], terms[0]) && isMatching(init[i], terms)) {
+    if (elementMatches$1(init[i], terms[0]) && isMatching(init[i], terms)) {
       ret.push(init[i]);
 
       if (takeN != null && ret.length >= takeN) {
@@ -268,10 +240,35 @@ function querySelector (query, root) {
   return querySelectorAll(query, root, 1)[0] || null;
 }
 
-var voidElementLookup = 'area base br col command embed hr img input keygen link meta param source track wbr'.split(' ').reduce(function (lookup, tagName) {
-  lookup[tagName] = true;
-  return lookup;
-}, {});
+function Attributes() { }
+Attributes.prototype = {};
+
+function dashToCamel(dashedName) {
+    var dashPositions = [];
+    var dashedChars = dashedName.split('');
+    dashedChars.map(function (e, i) {
+        if (e === '-') { dashPositions.push(i); }
+    });
+    var camelChars = dashedName.split('');
+    dashPositions.map(function (e, offset) {
+        var capLetter = dashedChars[e + 1].toUpperCase();
+        camelChars.splice(e - offset, 2, capLetter);
+    });
+    return camelChars.join('');
+}
+
+function camelToDash(camelName) {
+    var capPositions = [];
+    var camelChars = camelName.split('');
+    camelChars.map(function (e, i) {
+        if (/^[A-Z]/.test(e)) { capPositions.push(i); }
+    });
+    var dashedChars = camelName.split('');
+    capPositions.map(function (e) {
+        dashedChars.splice(e, 1, '-' + camelChars[e].toLowerCase());
+    });
+    return dashedChars.join('');
+}
 
 function CSSStyleDeclaration() {}
 
@@ -286,21 +283,25 @@ CSSStyleDeclaration.prototype.valueOf = function () {
 };
 
 CSSStyleDeclaration.prototype.toString = function () {
+    var this$1 = this;
+
     var str = '';
-    for (var p in this) {
-        if (!this.hasOwnProperty(p)) {
+    for (var p in this$1) {
+        if (!this$1.hasOwnProperty(p)) {
             continue;
         }
-        str += camelToDash(p) + ': ' +  this[p] + '; ';
+        str += camelToDash(p) + ': ' +  this$1[p] + '; ';
     }
     return str;
 };
 
 CSSStyleDeclaration.prototype.setValue = function (style) {
+    var this$1 = this;
+
     var list = style.split(';');
-    for (var p of list) {
+    for (var p in list) {
         var pair = p.split(':');
-        this[pair[0].trim()] = pair[1].trim();
+        this$1[pair[0].trim()] = pair[1].trim();
     }
 };
 
@@ -310,6 +311,13 @@ Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', {
     enumerable: true
 });
 
+function Dataset() { }
+Dataset.prototype = {};
+
+var voidElementLookup = 'area base br col command embed hr img input keygen link meta param source track wbr'.split(' ').reduce(function (lookup, tagName) {
+  lookup[tagName] = true;
+  return lookup;
+}, {});
 
 function HTMLElement (options) {
   var this$1 = this;
@@ -317,9 +325,8 @@ function HTMLElement (options) {
   Node.apply(this);
 
   this.attributes = new Attributes();
-  this.dataset = new Dataset();
-
   this.style = new CSSStyleDeclaration();
+  this.dataset = new Dataset();
 
   this.nodeType = 1;
 
@@ -345,22 +352,13 @@ var SVGElement = (function (HTMLElement) {
   SVGElement.prototype = Object.create( HTMLElement && HTMLElement.prototype );
   SVGElement.prototype.constructor = SVGElement;
 
-
+  
 
   return SVGElement;
 }(HTMLElement));
 
 HTMLElement.prototype = Object.create(Node.prototype);
 HTMLElement.prototype.constructor = HTMLElement;
-
-HTMLElement.prototype.matches = function (query) {
-    var terms = parseSelector(query);
-    if (terms == null || terms.length > 1) {
-        return false;
-    }
-    return elementMatches(this, terms[0]);
-};
-
 
 var noOp = function () { return undefined; };
 var noOpMethods = 'blur click focus';
@@ -401,7 +399,7 @@ HTMLElement.prototype.render = function (inner) {
         continue;
       }
 
-      var value;
+      var value = (void 0);
       switch (typeof this$1[key]) {
           case 'string':
           case 'number':
@@ -428,8 +426,8 @@ HTMLElement.prototype.render = function (inner) {
   var attrNames = Object.keys(this.attributes);
   if (attrNames.length > 0) {
       attrNames
-        .filter((e) => !(e in ['style', '_classList']))
-        .map((e) => attributes.push(e + '="' + this.attributes[e] + '"'));
+        .filter(function (e) { return !(e in ['style', '_classList']); })
+        .map(function (e) { return attributes.push(e + '="' + this$1.attributes[e] + '"'); });
   }
 
   if (inner) {
@@ -469,11 +467,13 @@ HTMLElement.prototype.addEventListener = function () {};
 HTMLElement.prototype.removeEventListener = function () {};
 
 HTMLElement.prototype.setAttribute = function (attr, value) {
+    var this$1 = this;
+
     switch (attr) {
         case 'class':
             this.classList.splice(0, this.classList.length);
             var classes = value.split(' ');
-            classes.forEach((cls) => this.classList.add(cls));
+            classes.forEach(function (cls) { return this$1.classList.add(cls); });
             break;
 
         default:
@@ -624,6 +624,15 @@ HTMLElement.prototype.querySelectorAll = function (query) {
   return querySelectorAll(query, this);
 };
 
+HTMLElement.prototype.matches = function (query) {
+    var terms = parseSelector(query);
+    if (terms == null || terms.length > 1) {
+        return false;
+    }
+    return elementMatches(this, terms[0]);
+};
+
+
 Object.defineProperties(HTMLElement.prototype, {
   _classList: {
     value: null,
@@ -658,6 +667,11 @@ Object.defineProperties(HTMLElement.prototype, {
   outerHTML: {
     get: function () {
       return this.render();
+    }
+  },
+  firstChild: {
+    get: function () {
+      return this.childNodes[0];
     }
   },
   textContent: {
@@ -703,12 +717,12 @@ Document.prototype.createElement = function (tagName) {
     tagName: tagName
   });
 
-  var this$1 = this;
+  // element.ownerDocument = this;
 
   if (!('ownerDocument' in element)) {
       Object.defineProperty(element, 'ownerDocument', {
           enumerable: false,
-          get: () => this$1
+          get: (function (t) { return function () { return t; }; })(this)
       });
   }
 
@@ -727,12 +741,12 @@ Document.prototype.createElementNS = function (ns, tagName) {
     });
   }
 
-  var this$1 = this;
+  // element.ownerDocument = this;
 
   if (!('ownerDocument' in element)) {
       Object.defineProperty(element, 'ownerDocument', {
           enumerable: false,
-          get: () => this$1
+          get: (function (t) { return function () { return t; }; })(this)
       });
   }
 
@@ -741,37 +755,22 @@ Document.prototype.createElementNS = function (ns, tagName) {
 
 Document.prototype.createDocumentFragment = function () {
     return (new Document()).body;
-}
+};
 
 Document.prototype.createTextNode = function (text) {
   var textNode = new TextNode(text);
 
-  var this$1 = this;
+  // element.textNode = this;
 
-  if (!('ownerDocument' in textNode)) {
+  if (!('ownerDocument' in element)) {
       Object.defineProperty(textNode, 'ownerDocument', {
           enumerable: false,
-          get: () => this$1
+          get: (function (t) { return function () { return t; }; })(this)
       });
   }
 
   return textNode;
 };
-
-Document.prototype.implementation = Object.create(null);
-
-Document.prototype.implementation.hasFeature = function (feature, version) {
-    switch (feature) {
-        default:
-            return false;
-    }
-}
-
-Document.prototype.implementation.createHTMLDocument = function (textContent) {
-    var document = new Document();
-    document.outerHTML = textContent;
-    return document;
-}
 
 Document.prototype.getElementsByTagName = function (tagName) {
   var lowerTagName = tagName.toLowerCase();
@@ -841,6 +840,22 @@ Document.prototype.querySelector = function (query) {
 
 Document.prototype.querySelectorAll = function (query) {
   return querySelectorAll(query, this);
+};
+
+
+Document.prototype.implementation = Object.create(null);
+
+Document.prototype.implementation.hasFeature = function (feature, version) {
+    switch (feature) {
+        default:
+            return false;
+    }
+};
+
+Document.prototype.implementation.createHTMLDocument = function (textContent) {
+    var document = new Document();
+    document.outerHTML = textContent;
+    return document;
 };
 
 function render (view, inner) {
