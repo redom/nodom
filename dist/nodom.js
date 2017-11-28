@@ -60,18 +60,12 @@ function Node () {
 }
 
 Node.prototype.cloneNode = function (deep) {
-  var Class = Object.getPrototypeOf(this);
-
-  return new Class.constructor(this);
-};
-
-Node.prototype.cloneNode = function (deep) {
     if (!deep || 'childNodes' in this && Array.isArray(this.childNodes) && this.childNodes.length === 0) {
         var Class = Object.getPrototypeOf(this);
         return new Class.constructor(this);
     } else {
-        Class = Object.getPrototypeOf(this);
-        var object = new Class.constructor(this);
+        var Class$1 = Object.getPrototypeOf(this);
+        var object = new Class$1.constructor(this);
 
         var childNodes = [];
 
@@ -135,7 +129,7 @@ var trimFirst = function (s) { return s.substr(1); };
 var trimId = function (id) { return id != null ? trimFirst(id) : null; };
 var trimClassNames = map(trimFirst);
 
-function parseSelector$1 (selector) {
+function parseSelector (selector) {
   if (selector == null || selector.length === 0) {
     return null;
   }
@@ -152,7 +146,7 @@ function parseSelector$1 (selector) {
     .reverse();
 }
 
-function elementMatches$1 (el, selector) {
+function elementMatches (el, selector) {
   if (el == null) {
     return false;
   }
@@ -181,23 +175,23 @@ function isMatching (el, terms) {
         // descendant, walk up the tree until a matching node is found
         do {
           curr = curr.parentNode;
-        } while (curr != null && !elementMatches$1(curr, terms[i]));
+        } while (curr != null && !elementMatches(curr, terms[i]));
         break;
       case '>':
         // immediate child
-        if (!elementMatches$1(curr.parentNode, terms[i])) {
+        if (!elementMatches(curr.parentNode, terms[i])) {
           return { v: false };
         }
         break;
       case '+':
         // adjacent sibling selector
-        if (!elementMatches$1(curr.parentNode.childNodes.find(function (c) { return c.nextSibling === curr; }), terms[i])) {
+        if (!elementMatches(curr.parentNode.childNodes.find(function (c) { return c.nextSibling === curr; }), terms[i])) {
           return { v: false };
         }
         break;
       case '~':
         // general sibling selector
-        if (!curr.parentNode.childNodes.slice(0, curr.parentNode.childNodes.indexOf(curr)).some(function (el) { return elementMatches$1(el, terms[i]); })) {
+        if (!curr.parentNode.childNodes.slice(0, curr.parentNode.childNodes.indexOf(curr)).some(function (el) { return elementMatches(el, terms[i]); })) {
           return { v: false };
         }
         break;
@@ -214,7 +208,7 @@ function isMatching (el, terms) {
 }
 
 function querySelectorAll (query, root, takeN) {
-  var terms = parseSelector$1(query);
+  var terms = parseSelector(query);
 
   if (terms == null) {
     return [];
@@ -224,7 +218,7 @@ function querySelectorAll (query, root, takeN) {
   var ret = [];
 
   for (var i = 0; i < init.length; i++) {
-    if (elementMatches$1(init[i], terms[0]) && isMatching(init[i], terms)) {
+    if (elementMatches(init[i], terms[0]) && isMatching(init[i], terms)) {
       ret.push(init[i]);
 
       if (takeN != null && ret.length >= takeN) {
@@ -274,7 +268,7 @@ function CSSStyleDeclaration() {}
 
 CSSStyleDeclaration.prototype = Object.create({});
 
-CSSStyleDeclaration.prototype.setProperty = function (propertyName, value, priority) {
+CSSStyleDeclaration.prototype.setProperty = function (propertyName, value/*, priority*/) {
     this[dashToCamel(propertyName)] = value;
 };
 
@@ -470,11 +464,12 @@ HTMLElement.prototype.setAttribute = function (attr, value) {
     var this$1 = this;
 
     switch (attr) {
-        case 'class':
+        case 'class': {
             this.classList.splice(0, this.classList.length);
             var classes = value.split(' ');
             classes.forEach(function (cls) { return this$1.classList.add(cls); });
             break;
+        }
 
         default:
             break;
@@ -762,7 +757,7 @@ Document.prototype.createTextNode = function (text) {
 
   // element.textNode = this;
 
-  if (!('ownerDocument' in element)) {
+  if (!('ownerDocument' in textNode)) {
       Object.defineProperty(textNode, 'ownerDocument', {
           enumerable: false,
           get: (function (t) { return function () { return t; }; })(this)
@@ -845,7 +840,7 @@ Document.prototype.querySelectorAll = function (query) {
 
 Document.prototype.implementation = Object.create(null);
 
-Document.prototype.implementation.hasFeature = function (feature, version) {
+Document.prototype.implementation.hasFeature = function (feature/*, version*/) {
     switch (feature) {
         default:
             return false;
