@@ -11,6 +11,7 @@ npm install nodom
 ```js
 const { Document } = require('nodom');
 global.document = new Document();
+global.SVGElement = SVGElement;
 const { el, mount } = require('redom');
 
 mount(document.body, el('h1', 'Hello world!'));
