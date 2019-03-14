@@ -55,15 +55,49 @@ ClassList.prototype.toString = function () {
   return this.join(' ').trim();
 };
 
-function Node () {}
+function Node () {
+    this.childNodes = [];
+}
 
 Node.prototype.cloneNode = function (deep) {
-  var Class = Object.getPrototypeOf(this);
+    if (!deep || 'childNodes' in this && Array.isArray(this.childNodes) && this.childNodes.length === 0) {
+        var Class = Object.getPrototypeOf(this);
+        return new Class.constructor(this);
+    } else {
+        var Class$1 = Object.getPrototypeOf(this);
+        var object = new Class$1.constructor(this);
 
-  return new Class.constructor(this);
+        var childNodes = [];
+
+        this.childNodes.map(function (e) { return childNodes.push(e.cloneNode(true)); });
+
+        object.childNodes = childNodes;
+        return object;
+    }
 };
 
+Object.defineProperty(Node.prototype, 'nodeValue', {
+    get: function () { return null; }
+});
+
+Object.defineProperty(Node.prototype, 'children', {
+    get: function () { return this.childNodes; }
+});
+
+Object.defineProperty(Node.prototype, 'firstChild', {
+    get: function () { return this.childNodes[0]; }
+});
+
+Object.defineProperty(Node.prototype, 'lastChild', {
+    get: function () { return this.childNodes[this.childNodes.length - 1]; }
+});
+
+Object.defineProperty(Node.prototype, 'nodeName', {
+    get: function () { return this.tagName; }
+});
+
 function TextNode (text) {
+  Node.apply(this);
   this.nodeType = 3;
   this.textContent = text;
 }
@@ -74,6 +108,10 @@ TextNode.prototype.constructor = TextNode;
 TextNode.prototype.render = function () {
   return this.textContent;
 };
+
+Object.defineProperty(TextNode.prototype, 'nodeValue', {
+    get: function () { return this.textContent; }
+});
 
 var combinators = ' >+~';
 var ws = new RegExp('\\s*([' + combinators + '])\\s*', 'g');
@@ -196,6 +234,80 @@ function querySelector (query, root) {
   return querySelectorAll(query, root, 1)[0] || null;
 }
 
+function Attributes() { }
+Attributes.prototype = {};
+
+function dashToCamel(dashedName) {
+    var dashPositions = [];
+    var dashedChars = dashedName.split('');
+    dashedChars.map(function (e, i) {
+        if (e === '-') { dashPositions.push(i); }
+    });
+    var camelChars = dashedName.split('');
+    dashPositions.map(function (e, offset) {
+        var capLetter = dashedChars[e + 1].toUpperCase();
+        camelChars.splice(e - offset, 2, capLetter);
+    });
+    return camelChars.join('');
+}
+
+function camelToDash(camelName) {
+    var capPositions = [];
+    var camelChars = camelName.split('');
+    camelChars.map(function (e, i) {
+        if (/^[A-Z]/.test(e)) { capPositions.push(i); }
+    });
+    var dashedChars = camelName.split('');
+    capPositions.map(function (e) {
+        dashedChars.splice(e, 1, '-' + camelChars[e].toLowerCase());
+    });
+    return dashedChars.join('');
+}
+
+function CSSStyleDeclaration() {}
+
+CSSStyleDeclaration.prototype = Object.create({});
+
+CSSStyleDeclaration.prototype.setProperty = function (propertyName, value/*, priority*/) {
+    this[dashToCamel(propertyName)] = value;
+};
+
+CSSStyleDeclaration.prototype.valueOf = function () {
+    return this;
+};
+
+CSSStyleDeclaration.prototype.toString = function () {
+    var this$1 = this;
+
+    var str = '';
+    for (var p in this$1) {
+        if (!this$1.hasOwnProperty(p)) {
+            continue;
+        }
+        str += camelToDash(p) + ': ' +  this$1[p] + '; ';
+    }
+    return str;
+};
+
+CSSStyleDeclaration.prototype.setValue = function (style) {
+    var this$1 = this;
+
+    var list = style.split(';');
+    for (var p in list) {
+        var pair = p.split(':');
+        this$1[pair[0].trim()] = pair[1].trim();
+    }
+};
+
+Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', {
+    get: function () { return this.toString(); },
+    set: function (text) { this.setValue(text); },
+    enumerable: true
+});
+
+function Dataset() { }
+Dataset.prototype = {};
+
 var voidElementLookup = 'area base br col command embed hr img input keygen link meta param source track wbr'.split(' ').reduce(function (lookup, tagName) {
   lookup[tagName] = true;
   return lookup;
@@ -204,8 +316,12 @@ var voidElementLookup = 'area base br col command embed hr img input keygen link
 function HTMLElement (options) {
   var this$1 = this;
 
-  this.childNodes = [];
-  this.style = {};
+  Node.apply(this);
+
+  this.attributes = new Attributes();
+  this.style = new CSSStyleDeclaration();
+  this.dataset = new Dataset();
+
   this.nodeType = 1;
 
   for (var key in options) {
@@ -258,35 +374,54 @@ HTMLElement.prototype.render = function (inner) {
   var content = '';
 
   for (var key in this$1) {
-    if (key === 'isMounted' || !this$1.hasOwnProperty(key)) {
+    if (key === 'isMounted'
+     || key === 'style'
+     || key === 'attributes'
+     || key === 'dataset'
+     || key === '_classList'
+     || !this$1.hasOwnProperty(key)) {
       continue;
     }
-    if (shouldNotRender[key] || !isVoidEl) {
+    if (shouldNotRender[key]/* || !isVoidEl */) { // FIXME: no need?
       if (this$1.childNodes.length) {
         hasChildren = true;
       }
     } else if (key === '_innerHTML') {
       content = this$1._innerHTML;
-    } else if (key === 'style') {
-      var styles = '';
-
-      for (var styleName in this$1.style) {
-        styles += styleName + ':' + this$1.style[styleName] + ';';
-      }
-
-      if (styles && styles.length) {
-        attributes.push('style="' + styles + '"');
-      }
     } else if (!shouldNotRender[key]) {
       if (typeof this$1[key] === 'function') {
         continue;
       }
-      attributes.push(key + '="' + this$1[key] + '"');
+
+      var value = (void 0);
+      switch (typeof this$1[key]) {
+          case 'string':
+          case 'number':
+              value = '"' + this$1[key] + '"';
+              break;
+
+          default:
+              // FIXME: is it better to use 'data-${key}' for jQuery .data(key) ?
+              value = "'" + JSON.stringify(this$1[key]) + "'";
+      }
+      attributes.push(key + '=' + value);
     }
   }
 
   if (this.className) {
     attributes.push('class="' + this.className + '"');
+  }
+
+  var cssText = this.style.cssText;
+  if (cssText.length > 0) {
+      attributes.push('style="' + cssText + '"');
+  }
+
+  var attrNames = Object.keys(this.attributes);
+  if (attrNames.length > 0) {
+      attrNames
+        .filter(function (e) { return !(e in ['style', '_classList']); })
+        .map(function (e) { return attributes.push(e + '="' + this$1.attributes[e] + '"'); });
   }
 
   if (inner) {
@@ -326,11 +461,47 @@ HTMLElement.prototype.addEventListener = function () {};
 HTMLElement.prototype.removeEventListener = function () {};
 
 HTMLElement.prototype.setAttribute = function (attr, value) {
-  this[attr] = value;
+    var this$1 = this;
+
+    switch (attr) {
+        case 'class': {
+            this.classList.splice(0, this.classList.length);
+            var classes = value.split(' ');
+            classes.forEach(function (cls) { return this$1.classList.add(cls); });
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    var propertyName = attr;
+
+    if (/^data-/.test(attr)) {
+        propertyName = dashToCamel(attr);
+        this.dataset[propertyName] = value;
+
+        Object.defineProperty(this, propertyName, {
+            get: (function (t, a) {
+                return function () { return t.dataset[a]; };
+            })(this, propertyName),
+            enumerable: true
+        });
+    }
+    else if (!this.hasOwnProperty(propertyName)) {
+        Object.defineProperty(this, propertyName, {
+            get: (function (t, a) {
+                return function () { return t.attributes[a]; };
+            })(this, propertyName),
+            enumerable: true
+        });
+    }
+
+    this.attributes[attr] = value;
 };
 
 HTMLElement.prototype.getAttribute = function (attr) {
-  return this[attr];
+    return this.attributes[attr] || this[attr];
 };
 
 HTMLElement.prototype.appendChild = function (child) {
@@ -356,13 +527,18 @@ HTMLElement.prototype.insertBefore = function (child, before) {
     return; // Silently ignored
   }
   child.parentNode = this;
-  for (var i = 0; i < this.childNodes.length; i++) {
-    if (this$1.childNodes[i] === before) {
-      this$1.childNodes.splice(i++, 0, child);
-    } else if (this$1.childNodes[i] === child) {
-      this$1.childNodes.splice(i, 1);
-    }
+  if (before == null) {
+      this$1.childNodes.push(child);
+  } else {
+      for (var i = 0; i < this.childNodes.length; i++) {
+          if (this$1.childNodes[i] === before) {
+              this$1.childNodes.splice(i++, 0, child);
+          } else if (this$1.childNodes[i] === child) {
+              this$1.childNodes.splice(i, 1);
+          }
+      }
   }
+  return child;
 };
 
 HTMLElement.prototype.replaceChild = function (child, replace) {
@@ -401,11 +577,17 @@ HTMLElement.prototype.getElementsByTagName = function (tagName) {
   }
 
   return this.childNodes.reduce(function (results, child) {
-    if (lowerTagName === '*' || child.tagName === lowerTagName) {
-      return results.concat(child, child.getElementsByTagName(lowerTagName));
+    if (child.getElementsByTagName) {
+        if (lowerTagName === '*' || child.tagName === lowerTagName) {
+          return results.concat(child, child.getElementsByTagName(lowerTagName));
+        }
+
+        return results.concat(child.getElementsByTagName(lowerTagName));
+    }
+    else {
+        return results;
     }
 
-    return results.concat(child.getElementsByTagName(lowerTagName));
   }, []);
 };
 
@@ -436,6 +618,15 @@ HTMLElement.prototype.querySelector = function (query) {
 HTMLElement.prototype.querySelectorAll = function (query) {
   return querySelectorAll(query, this);
 };
+
+HTMLElement.prototype.matches = function (query) {
+    var terms = parseSelector(query);
+    if (terms == null || terms.length > 1) {
+        return false;
+    }
+    return elementMatches(this, terms[0]);
+};
+
 
 Object.defineProperties(HTMLElement.prototype, {
   _classList: {
@@ -517,25 +708,63 @@ function Document () {
 }
 
 Document.prototype.createElement = function (tagName) {
-  return new HTMLElement({
+  var element = new HTMLElement({
     tagName: tagName
   });
+
+  // element.ownerDocument = this;
+
+  if (!('ownerDocument' in element)) {
+      Object.defineProperty(element, 'ownerDocument', {
+          enumerable: false,
+          get: (function (t) { return function () { return t; }; })(this)
+      });
+  }
+
+  return element;
 };
 
 Document.prototype.createElementNS = function (ns, tagName) {
+  var element;
   if (tagName === 'http://www.w3.org/2000/svg') {
-    return new SVGElement({
+    element = new SVGElement({
       tagName: tagName
     });
   } else {
-    return new HTMLElement({
+    element = new HTMLElement({
       tagName: tagName
     });
   }
+
+  // element.ownerDocument = this;
+
+  if (!('ownerDocument' in element)) {
+      Object.defineProperty(element, 'ownerDocument', {
+          enumerable: false,
+          get: (function (t) { return function () { return t; }; })(this)
+      });
+  }
+
+  return element;
+};
+
+Document.prototype.createDocumentFragment = function () {
+    return (new Document()).body;
 };
 
 Document.prototype.createTextNode = function (text) {
-  return new TextNode(text);
+  var textNode = new TextNode(text);
+
+  // element.textNode = this;
+
+  if (!('ownerDocument' in textNode)) {
+      Object.defineProperty(textNode, 'ownerDocument', {
+          enumerable: false,
+          get: (function (t) { return function () { return t; }; })(this)
+      });
+  }
+
+  return textNode;
 };
 
 Document.prototype.getElementsByTagName = function (tagName) {
@@ -606,6 +835,22 @@ Document.prototype.querySelector = function (query) {
 
 Document.prototype.querySelectorAll = function (query) {
   return querySelectorAll(query, this);
+};
+
+
+Document.prototype.implementation = Object.create(null);
+
+Document.prototype.implementation.hasFeature = function (feature/*, version*/) {
+    switch (feature) {
+        default:
+            return false;
+    }
+};
+
+Document.prototype.implementation.createHTMLDocument = function (textContent) {
+    var document = new Document();
+    document.outerHTML = textContent;
+    return document;
 };
 
 function render (view, inner) {
