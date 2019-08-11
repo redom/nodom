@@ -9,7 +9,7 @@ npm install nodom
 
 ## usage
 ```js
-const { Document } = require('nodom');
+const { Document, SVGElement } = require('nodom');
 global.document = new Document();
 global.SVGElement = SVGElement;
 const { el, mount } = require('redom');
