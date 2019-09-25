@@ -377,6 +377,10 @@
       } else if (key === '_innerHTML') {
         content = this._innerHTML;
       } else if (!shouldNotRender[key]) {
+        // Attributes will be rendered later; avoid rendering them twice.
+        if (key in this.attributes) {
+          continue;
+        }
         if (typeof this[key] === 'function') {
           continue;
         }
@@ -473,7 +477,7 @@
         get: (function (t, a) {
           return function () { return t.dataset[a]; };
         })(this, propertyName),
-        enumerable: true
+        enumerable: false
       });
     } else if (!this.hasOwnProperty(propertyName)) {
       Object.defineProperty(this, propertyName, {
