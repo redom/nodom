@@ -492,7 +492,7 @@
   };
 
   HTMLElement.prototype.getAttribute = function (attr) {
-    return this.attributes[attr] || this[attr];
+    return this.attributes[attr] || this[attr] || null;
   };
 
   HTMLElement.prototype.appendChild = function (child) {
