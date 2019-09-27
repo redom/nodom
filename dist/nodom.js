@@ -540,6 +540,7 @@
         this.childNodes[i] = child;
       }
     }
+    return replace;
   };
 
   HTMLElement.prototype.removeChild = function (child) {
