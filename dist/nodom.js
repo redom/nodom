@@ -49,6 +49,18 @@
     }
   };
 
+  ClassList.prototype.toggle = function (className) {
+    var idx = this.indexOf(className);
+
+    if (idx >= 0) {
+      this.splice(idx, 1);
+      return false;
+    } else {
+      this.push(className);
+      return true;
+    }
+  };
+
   ClassList.prototype.toString = function () {
     return this.join(' ').trim();
   };
