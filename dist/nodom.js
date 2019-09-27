@@ -35,6 +35,10 @@
     return false;
   };
 
+  ClassList.prototype.item = function (index) {
+    return this[index] || null;
+  };
+
   ClassList.prototype.remove = function (className) {
     var classNames = this.classNames;
 
