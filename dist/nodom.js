@@ -79,7 +79,7 @@
   });
 
   Object.defineProperty(Node.prototype, 'firstChild', {
-    get: function () { return this.childNodes[0]; }
+    get: function () { return this.childNodes[0] || null; }
   });
 
   Object.defineProperty(Node.prototype, 'lastChild', {
@@ -648,7 +648,7 @@
     },
     firstChild: {
       get: function () {
-        return this.childNodes[0];
+        return this.childNodes[0] || null;
       }
     },
     textContent: {
@@ -840,10 +840,10 @@
 
   exports.Document = Document;
   exports.HTMLElement = HTMLElement;
-  exports.SVGElement = SVGElement;
   exports.Node = Node;
-  exports.render = render;
+  exports.SVGElement = SVGElement;
   exports.TextNode = TextNode;
+  exports.render = render;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
