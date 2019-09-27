@@ -497,7 +497,7 @@
 
   HTMLElement.prototype.appendChild = function (child) {
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return child; // Silently ignored
     }
     child.parentNode = this;
     for (var i = 0; i < this.childNodes.length; i++) {
@@ -513,7 +513,7 @@
     var this$1 = this;
 
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return child; // Silently ignored
     }
     child.parentNode = this;
     if (before == null) {
@@ -532,7 +532,7 @@
 
   HTMLElement.prototype.replaceChild = function (child, replace) {
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return replace; // Silently ignored
     }
     child.parentNode = this;
     for (var i = 0; i < this.childNodes.length; i++) {
@@ -545,7 +545,7 @@
 
   HTMLElement.prototype.removeChild = function (child) {
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return child; // Silently ignored
     }
     child.parentNode = null;
     for (var i = 0; i < this.childNodes.length; i++) {
