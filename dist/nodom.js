@@ -278,6 +278,10 @@
 
   CSSStyleDeclaration.prototype = Object.create({});
 
+  CSSStyleDeclaration.prototype.getPropertyPriority = function (_propertyName) {
+    return '';  // we don't store property priority
+  };
+
   CSSStyleDeclaration.prototype.getPropertyValue = function (propertyName) {
     propertyName = dashToCamel(propertyName);
     return this.hasOwnProperty(propertyName) ? this[propertyName] : '';
