@@ -553,6 +553,7 @@
         this.childNodes.splice(i, 1);
       }
     }
+    return child;
   };
 
   HTMLElement.prototype.getElementsByTagName = function (tagName) {
