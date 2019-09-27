@@ -287,6 +287,14 @@
     this[dashToCamel(propertyName)] = value;
   };
 
+  CSSStyleDeclaration.prototype.removeProperty = function (propertyName) {
+    var oldValue = this.getPropertyValue(propertyName);
+    if (oldValue) {
+      delete this[dashToCamel(propertyName)];
+    }
+    return oldValue;
+  };
+
   CSSStyleDeclaration.prototype.valueOf = function () {
     return this;
   };
