@@ -672,6 +672,7 @@
             return siblings[i + 1];
           }
         }
+        return null;
       }
     }
   });
