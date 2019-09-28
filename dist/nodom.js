@@ -103,7 +103,7 @@
   function TextNode (text) {
     Node.apply(this);
     this.nodeType = 3;
-    this.textContent = text;
+    this.textContent = String(text);
   }
 
   TextNode.prototype = Object.create(Node.prototype);
