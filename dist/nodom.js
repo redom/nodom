@@ -510,14 +510,16 @@
         get: (function (t, a) {
           return function () { return t.dataset[a]; };
         })(this, propertyName),
-        enumerable: false
+        enumerable: false,
+        configurable: true
       });
     } else if (!this.hasOwnProperty(propertyName)) {
       Object.defineProperty(this, propertyName, {
         get: (function (t, a) {
           return function () { return t.attributes[a]; };
         })(this, propertyName),
-        enumerable: true
+        enumerable: true,
+        configurable: true
       });
     }
 
@@ -526,6 +528,21 @@
 
   HTMLElement.prototype.getAttribute = function (attr) {
     return this.attributes[attr] || this[attr] || null;
+  };
+
+  HTMLElement.prototype.removeAttribute = function (attr) {
+    if (attr === 'class') {
+      this.classList.reset();
+      return;
+    }
+    if (/^data-/.test(attr)) {
+      delete this.dataset[dashToCamel(attr)];
+    }
+    // FIXME: this does not remove attributes set directly on the element
+    if (this.attributes.hasOwnProperty(attr)) {
+      delete this.attributes[attr];
+      delete this[attr];
+    }
   };
 
   HTMLElement.prototype.appendChild = function (child) {
