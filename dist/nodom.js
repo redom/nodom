@@ -109,7 +109,7 @@
   var htmlEntities = {
     '&': '&amp;',
     '<': '&lt;',
-    '>': '&gt;',
+    '>': '&gt;'
   };
 
   function escapeHTML (str) {
@@ -289,7 +289,7 @@
   CSSStyleDeclaration.prototype = Object.create({});
 
   CSSStyleDeclaration.prototype.getPropertyPriority = function (_propertyName) {
-    return '';  // we don't store property priority
+    return ''; // we don't store property priority
   };
 
   CSSStyleDeclaration.prototype.getPropertyValue = function (propertyName) {
