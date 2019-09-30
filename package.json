@@ -4,6 +4,7 @@
   "description": "fake DOM for RE:DOM",
   "main": "dist/nodom.js",
   "jsnext:main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "dev": "node watch",
     "fixlint": "semistandard 'lib/**/*.js' 'test/**/*.js' --fix",
