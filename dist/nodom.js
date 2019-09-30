@@ -106,17 +106,27 @@
     get: function () { return this.tagName; }
   });
 
+  var htmlEntities = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+  };
+
+  function escapeHTML (str) {
+    return (str || '').replace(/[&<>]/g, function (c) { return htmlEntities[c]; });
+  }
+
   function TextNode (text) {
     Node.apply(this);
     this.nodeType = 3;
-    this.textContent = text;
+    this.textContent = String(text);
   }
 
   TextNode.prototype = Object.create(Node.prototype);
   TextNode.prototype.constructor = TextNode;
 
   TextNode.prototype.render = function () {
-    return this.textContent;
+    return escapeHTML(this.textContent);
   };
 
   Object.defineProperty(TextNode.prototype, 'nodeValue', {
