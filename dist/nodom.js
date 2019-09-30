@@ -488,16 +488,11 @@
   HTMLElement.prototype.setAttribute = function (attr, value) {
     var this$1 = this;
 
-    switch (attr) {
-      case 'class': {
-        this.classList.splice(0, this.classList.length);
-        var classes = value.split(' ');
-        classes.forEach(function (cls) { return this$1.classList.add(cls); });
-        break;
-      }
-
-      default:
-        break;
+    if (attr === 'class') {
+      this.classList.splice(0, this.classList.length);
+      var classes = value.split(' ');
+      classes.forEach(function (cls) { return this$1.classList.add(cls); });
+      return;
     }
 
     var propertyName = attr;
