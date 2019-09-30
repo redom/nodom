@@ -109,7 +109,7 @@
   var htmlEntities = {
     '&': '&amp;',
     '<': '&lt;',
-    '>': '&gt;',
+    '>': '&gt;'
   };
 
   function escapeHTML (str) {
@@ -257,6 +257,11 @@
   function Attributes () { }
   Attributes.prototype = {};
 
+  // See https://eslint.org/docs/rules/no-prototype-builtins.
+  function hasOwnProperty (obj, propName) {
+    return Object.prototype.hasOwnProperty.call(obj, propName);
+  }
+
   function dashToCamel (dashedName) {
     var dashPositions = [];
     var dashedChars = dashedName.split('');
@@ -289,12 +294,12 @@
   CSSStyleDeclaration.prototype = Object.create({});
 
   CSSStyleDeclaration.prototype.getPropertyPriority = function (_propertyName) {
-    return '';  // we don't store property priority
+    return ''; // we don't store property priority
   };
 
   CSSStyleDeclaration.prototype.getPropertyValue = function (propertyName) {
     propertyName = dashToCamel(propertyName);
-    return this.hasOwnProperty(propertyName) ? this[propertyName] : '';
+    return hasOwnProperty(this, propertyName) ? this[propertyName] : '';
   };
 
   CSSStyleDeclaration.prototype.setProperty = function (propertyName, value/*, priority */) {
@@ -316,7 +321,7 @@
   CSSStyleDeclaration.prototype.toString = function () {
     var str = '';
     for (var p in this) {
-      if (!this.hasOwnProperty(p)) {
+      if (!hasOwnProperty(this, p)) {
         continue;
       }
       str += camelToDash(p) + ': ' + this[p] + '; ';
@@ -410,7 +415,7 @@
        key === 'attributes' ||
        key === 'dataset' ||
        key === '_classList' ||
-       !this.hasOwnProperty(key)) {
+       !hasOwnProperty(this, key)) {
         continue;
       }
       if (shouldNotRender[key]/* || !isVoidEl */) { // FIXME: no need?
@@ -518,7 +523,7 @@
         enumerable: false,
         configurable: true
       });
-    } else if (!this.hasOwnProperty(propertyName)) {
+    } else if (!hasOwnProperty(this, propertyName)) {
       Object.defineProperty(this, propertyName, {
         get: (function (t, a) {
           return function () { return t.attributes[a]; };
@@ -544,7 +549,7 @@
       delete this.dataset[dashToCamel(attr)];
     }
     // FIXME: this does not remove attributes set directly on the element
-    if (this.attributes.hasOwnProperty(attr)) {
+    if (hasOwnProperty(this.attributes, attr)) {
       delete this.attributes[attr];
       delete this[attr];
     }
