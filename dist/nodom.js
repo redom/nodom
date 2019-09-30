@@ -35,6 +35,10 @@
     return false;
   };
 
+  ClassList.prototype.item = function (index) {
+    return this[index] || null;
+  };
+
   ClassList.prototype.remove = function (className) {
     var classNames = this.classNames;
 
@@ -42,6 +46,18 @@
       if (classNames[i] === className) {
         this.splice(i, 1);
       }
+    }
+  };
+
+  ClassList.prototype.toggle = function (className) {
+    var idx = this.indexOf(className);
+
+    if (idx >= 0) {
+      this.splice(idx, 1);
+      return false;
+    } else {
+      this.push(className);
+      return true;
     }
   };
 
@@ -79,11 +95,11 @@
   });
 
   Object.defineProperty(Node.prototype, 'firstChild', {
-    get: function () { return this.childNodes[0]; }
+    get: function () { return this.childNodes[0] || null; }
   });
 
   Object.defineProperty(Node.prototype, 'lastChild', {
-    get: function () { return this.childNodes[this.childNodes.length - 1]; }
+    get: function () { return this.childNodes[this.childNodes.length - 1] || null; }
   });
 
   Object.defineProperty(Node.prototype, 'nodeName', {
@@ -262,8 +278,25 @@
 
   CSSStyleDeclaration.prototype = Object.create({});
 
+  CSSStyleDeclaration.prototype.getPropertyPriority = function (_propertyName) {
+    return '';  // we don't store property priority
+  };
+
+  CSSStyleDeclaration.prototype.getPropertyValue = function (propertyName) {
+    propertyName = dashToCamel(propertyName);
+    return this.hasOwnProperty(propertyName) ? this[propertyName] : '';
+  };
+
   CSSStyleDeclaration.prototype.setProperty = function (propertyName, value/*, priority */) {
     this[dashToCamel(propertyName)] = value;
+  };
+
+  CSSStyleDeclaration.prototype.removeProperty = function (propertyName) {
+    var oldValue = this.getPropertyValue(propertyName);
+    if (oldValue) {
+      delete this[dashToCamel(propertyName)];
+    }
+    return oldValue;
   };
 
   CSSStyleDeclaration.prototype.valueOf = function () {
@@ -477,14 +510,16 @@
         get: (function (t, a) {
           return function () { return t.dataset[a]; };
         })(this, propertyName),
-        enumerable: false
+        enumerable: false,
+        configurable: true
       });
     } else if (!this.hasOwnProperty(propertyName)) {
       Object.defineProperty(this, propertyName, {
         get: (function (t, a) {
           return function () { return t.attributes[a]; };
         })(this, propertyName),
-        enumerable: true
+        enumerable: true,
+        configurable: true
       });
     }
 
@@ -492,12 +527,27 @@
   };
 
   HTMLElement.prototype.getAttribute = function (attr) {
-    return this.attributes[attr] || this[attr];
+    return this.attributes[attr] || this[attr] || null;
+  };
+
+  HTMLElement.prototype.removeAttribute = function (attr) {
+    if (attr === 'class') {
+      this.classList.reset();
+      return;
+    }
+    if (/^data-/.test(attr)) {
+      delete this.dataset[dashToCamel(attr)];
+    }
+    // FIXME: this does not remove attributes set directly on the element
+    if (this.attributes.hasOwnProperty(attr)) {
+      delete this.attributes[attr];
+      delete this[attr];
+    }
   };
 
   HTMLElement.prototype.appendChild = function (child) {
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return child; // Silently ignored
     }
     child.parentNode = this;
     for (var i = 0; i < this.childNodes.length; i++) {
@@ -513,7 +563,7 @@
     var this$1 = this;
 
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return child; // Silently ignored
     }
     child.parentNode = this;
     if (before == null) {
@@ -532,7 +582,7 @@
 
   HTMLElement.prototype.replaceChild = function (child, replace) {
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return replace; // Silently ignored
     }
     child.parentNode = this;
     for (var i = 0; i < this.childNodes.length; i++) {
@@ -540,11 +590,12 @@
         this.childNodes[i] = child;
       }
     }
+    return replace;
   };
 
   HTMLElement.prototype.removeChild = function (child) {
     if (this.isVoidEl) {
-      return; // Silently ignored
+      return child; // Silently ignored
     }
     child.parentNode = null;
     for (var i = 0; i < this.childNodes.length; i++) {
@@ -552,6 +603,7 @@
         this.childNodes.splice(i, 1);
       }
     }
+    return child;
   };
 
   HTMLElement.prototype.getElementsByTagName = function (tagName) {
@@ -648,7 +700,7 @@
     },
     firstChild: {
       get: function () {
-        return this.childNodes[0];
+        return this.childNodes[0] || null;
       }
     },
     textContent: {
@@ -672,6 +724,7 @@
             return siblings[i + 1];
           }
         }
+        return null;
       }
     }
   });
@@ -840,10 +893,10 @@
 
   exports.Document = Document;
   exports.HTMLElement = HTMLElement;
-  exports.SVGElement = SVGElement;
   exports.Node = Node;
-  exports.render = render;
+  exports.SVGElement = SVGElement;
   exports.TextNode = TextNode;
+  exports.render = render;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
