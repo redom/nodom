@@ -1,6 +1,6 @@
 {
   "name": "nodom",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "fake DOM for RE:DOM",
   "main": "dist/nodom.js",
   "jsnext:main": "lib/index.js",
