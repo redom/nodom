@@ -445,7 +445,7 @@
     var attrNames = Object.keys(this.attributes);
     if (attrNames.length > 0) {
       attrNames
-        .filter(function (e) { return !(e in ['style', '_classList']); })
+        .filter(function (e) { return e !== 'style' && e !== '_classList'; })
         .map(function (e) { return attributes.push(e + '="' + this$1.attributes[e] + '"'); });
     }
 
