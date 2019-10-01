@@ -4,72 +4,83 @@
   (global = global || self, factory(global.nodom = {}));
 }(this, function (exports) { 'use strict';
 
-  function ClassList (el) {
-    this.reset(el.className);
-  }
-
-  ClassList.prototype = [];
-
-  ClassList.prototype.reset = function (className) {
-    var classNames = (className || '').split(' ');
-
-    this.length = classNames.length;
-
-    for (var i = 0; i < classNames.length; i++) {
-      this[i] = classNames[i];
+  var ClassList = /*@__PURE__*/(function (Array) {
+    function ClassList (el) {
+      Array.call(this);
+      this.reset(el.className);
     }
-  };
 
-  ClassList.prototype.add = function (className) {
-    if (!this.contains(className)) {
-      this.push(className);
-    }
-  };
+    if ( Array ) ClassList.__proto__ = Array;
+    ClassList.prototype = Object.create( Array && Array.prototype );
+    ClassList.prototype.constructor = ClassList;
 
-  ClassList.prototype.contains = function (className) {
-    for (var i = 0; i < this.length; i++) {
-      if (this[i] === className) {
+    ClassList.prototype.reset = function reset (className) {
+      var classNames = (className || '').split(' ');
+
+      this.length = classNames.length;
+
+      for (var i = 0; i < classNames.length; i++) {
+        this[i] = classNames[i];
+      }
+    };
+
+    ClassList.prototype.add = function add (className) {
+      if (!this.contains(className)) {
+        this.push(className);
+      }
+    };
+
+    ClassList.prototype.contains = function contains (className) {
+      for (var i = 0; i < this.length; i++) {
+        if (this[i] === className) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    ClassList.prototype.item = function item (index) {
+      return this[index] || null;
+    };
+
+    ClassList.prototype.remove = function remove (className) {
+      var classNames = this.classNames;
+
+      for (var i = 0; i < this.length; i++) {
+        if (classNames[i] === className) {
+          this.splice(i, 1);
+        }
+      }
+    };
+
+    ClassList.prototype.toggle = function toggle (className) {
+      var idx = this.indexOf(className);
+
+      if (idx >= 0) {
+        this.splice(idx, 1);
+        return false;
+      } else {
+        this.push(className);
         return true;
       }
-    }
-    return false;
-  };
+    };
 
-  ClassList.prototype.item = function (index) {
-    return this[index] || null;
-  };
+    ClassList.prototype.toString = function toString () {
+      return this.join(' ').trim();
+    };
 
-  ClassList.prototype.remove = function (className) {
-    var classNames = this.classNames;
+    return ClassList;
+  }(Array));
 
-    for (var i = 0; i < this.length; i++) {
-      if (classNames[i] === className) {
-        this.splice(i, 1);
-      }
-    }
-  };
+  ClassList.prototype.constructor = Array;
 
-  ClassList.prototype.toggle = function (className) {
-    var idx = this.indexOf(className);
-
-    if (idx >= 0) {
-      this.splice(idx, 1);
-      return false;
-    } else {
-      this.push(className);
-      return true;
-    }
-  };
-
-  ClassList.prototype.toString = function () {
-    return this.join(' ').trim();
-  };
-
-  function Node () {
+  var Node = function Node () {
     this.childNodes = [];
-  }
+  };
 
-  Node.prototype.cloneNode = function (deep) {
+  var prototypeAccessors = { nodeValue: { configurable: true },children: { configurable: true },firstChild: { configurable: true },lastChild: { configurable: true },nodeName: { configurable: true } };
+
+  Node.prototype.cloneNode = function cloneNode (deep) {
     if (!deep || ('childNodes' in this && Array.isArray(this.childNodes) && this.childNodes.length === 0)) {
       var Class = Object.getPrototypeOf(this);
       return new Class.constructor(this);
@@ -86,25 +97,27 @@
     }
   };
 
-  Object.defineProperty(Node.prototype, 'nodeValue', {
-    get: function () { return null; }
-  });
+  prototypeAccessors.nodeValue.get = function () {
+    return null;
+  };
 
-  Object.defineProperty(Node.prototype, 'children', {
-    get: function () { return this.childNodes; }
-  });
+  prototypeAccessors.children.get = function () {
+    return this.childNodes;
+  };
 
-  Object.defineProperty(Node.prototype, 'firstChild', {
-    get: function () { return this.childNodes[0] || null; }
-  });
+  prototypeAccessors.firstChild.get = function () {
+    return this.childNodes[0] || null;
+  };
 
-  Object.defineProperty(Node.prototype, 'lastChild', {
-    get: function () { return this.childNodes[this.childNodes.length - 1] || null; }
-  });
+  prototypeAccessors.lastChild.get = function () {
+    return this.childNodes[this.childNodes.length - 1] || null;
+  };
 
-  Object.defineProperty(Node.prototype, 'nodeName', {
-    get: function () { return this.tagName; }
-  });
+  prototypeAccessors.nodeName.get = function () {
+    return this.tagName;
+  };
+
+  Object.defineProperties( Node.prototype, prototypeAccessors );
 
   var htmlEntities = {
     '&': '&amp;',
@@ -116,22 +129,31 @@
     return (str || '').replace(/[&<>]/g, function (c) { return htmlEntities[c]; });
   }
 
-  function TextNode (text) {
-    Node.apply(this);
-    this.nodeType = 3;
-    this.textContent = String(text);
-  }
+  var TextNode = /*@__PURE__*/(function (Node) {
+    function TextNode (text) {
+      Node.call(this);
+      this.nodeType = 3;
+      this.textContent = String(text);
+    }
 
-  TextNode.prototype = Object.create(Node.prototype);
-  TextNode.prototype.constructor = TextNode;
+    if ( Node ) TextNode.__proto__ = Node;
+    TextNode.prototype = Object.create( Node && Node.prototype );
+    TextNode.prototype.constructor = TextNode;
 
-  TextNode.prototype.render = function () {
-    return escapeHTML(this.textContent);
-  };
+    var prototypeAccessors = { nodeValue: { configurable: true } };
 
-  Object.defineProperty(TextNode.prototype, 'nodeValue', {
-    get: function () { return this.textContent; }
-  });
+    TextNode.prototype.render = function render () {
+      return escapeHTML(this.textContent);
+    };
+
+    prototypeAccessors.nodeValue.get = function () {
+      return this.textContent;
+    };
+
+    Object.defineProperties( TextNode.prototype, prototypeAccessors );
+
+    return TextNode;
+  }(Node));
 
   var combinators = ' >+~';
   var ws = new RegExp('\\s*([' + combinators + '])\\s*', 'g');
@@ -351,29 +373,385 @@
     return lookup;
   }, {});
 
-  function HTMLElement (options) {
-    Node.apply(this);
+  var shouldNotRender = 'tagName view nodeType isVoidEl parent parentNode childNodes isMounted'.split(' ').reduce(function (lookup, key) {
+    lookup[key] = true;
+    return lookup;
+  }, {});
 
-    this.attributes = new Attributes();
-    this.style = new CSSStyleDeclaration();
-    this.dataset = new Dataset();
+  var HTMLElement = /*@__PURE__*/(function (Node) {
+    function HTMLElement (options) {
+      Node.call(this);
 
-    this.nodeType = 1;
+      this.attributes = new Attributes();
+      this.style = new CSSStyleDeclaration();
+      this.dataset = new Dataset();
 
-    for (var key in options) {
-      this[key] = options[key];
+      this.nodeType = 1;
+
+      for (var key in options) {
+        this[key] = options[key];
+      }
+
+      if (!this.tagName) {
+        this.tagName = 'div';
+      }
+
+      this.tagName = this.tagName.toLowerCase();
+
+      Object.defineProperty(this, 'isVoidEl', {
+        value: voidElementLookup[this.tagName]
+      });
     }
 
-    if (!this.tagName) {
-      this.tagName = 'div';
-    }
+    if ( Node ) HTMLElement.__proto__ = Node;
+    HTMLElement.prototype = Object.create( Node && Node.prototype );
+    HTMLElement.prototype.constructor = HTMLElement;
 
-    this.tagName = this.tagName.toLowerCase();
+    var prototypeAccessors = { classList: { configurable: true },className: { configurable: true },innerHTML: { configurable: true },outerHTML: { configurable: true },firstChild: { configurable: true },textContent: { configurable: true },nextSibling: { configurable: true } };
 
-    Object.defineProperty(this, 'isVoidEl', {
-      value: voidElementLookup[this.tagName]
-    });
-  }
+    HTMLElement.prototype.render = function render (inner) {
+      var this$1 = this;
+
+      var isVoidEl = this.isVoidEl;
+      var attributes = [];
+
+      var hasChildren = false;
+      var content = '';
+
+      for (var key in this) {
+        if (key === 'isMounted' ||
+         key === 'style' ||
+         key === 'attributes' ||
+         key === 'dataset' ||
+         key === '_classList' ||
+         !hasOwnProperty(this, key)) {
+          continue;
+        }
+        if (shouldNotRender[key]/* || !isVoidEl */) { // FIXME: no need?
+          if (this.childNodes.length) {
+            hasChildren = true;
+          }
+        } else if (key === '_innerHTML') {
+          content = this._innerHTML;
+        } else if (!shouldNotRender[key]) {
+          // Attributes will be rendered later; avoid rendering them twice.
+          if (key in this.attributes) {
+            continue;
+          }
+          if (typeof this[key] === 'function') {
+            continue;
+          }
+
+          var value = (void 0);
+          switch (typeof this[key]) {
+            case 'string':
+            case 'number':
+              value = '"' + this[key] + '"';
+              break;
+
+            default:
+              // FIXME: is it better to use 'data-${key}' for jQuery .data(key) ?
+              value = "'" + JSON.stringify(this[key]) + "'";
+          }
+          attributes.push(key + '=' + value);
+        }
+      }
+
+      if (this.className) {
+        attributes.push('class="' + this.className + '"');
+      }
+
+      var cssText = this.style.cssText;
+      if (cssText.length > 0) {
+        attributes.push('style="' + cssText + '"');
+      }
+
+      var attrNames = Object.keys(this.attributes);
+      if (attrNames.length > 0) {
+        attrNames
+          .filter(function (e) { return e !== 'style' && e !== '_classList'; })
+          .map(function (e) { return attributes.push(e + '="' + this$1.attributes[e] + '"'); });
+      }
+
+      if (inner) {
+        if (!isVoidEl && hasChildren) {
+          return this.childNodes.map(childRenderer).join('');
+        } else if (!isVoidEl && content) {
+          return content;
+        } else {
+          return '';
+        }
+      }
+
+      if (!isVoidEl && hasChildren) {
+        var tagName = this.tagName;
+        var tagOpening = [tagName].concat(attributes).join(' ');
+        var children = this.childNodes.map(childRenderer).join('');
+
+        return ("<" + tagOpening + ">" + children + "</" + tagName + ">");
+      } else if (!isVoidEl && content) {
+        var tagName$1 = this.tagName;
+        var tagOpening$1 = [this.tagName].concat(attributes).join(' ');
+
+        return ("<" + tagOpening$1 + ">" + content + "</" + tagName$1 + ">");
+      } else {
+        var tagName$2 = this.tagName;
+        var tagOpening$2 = [tagName$2].concat(attributes).join(' ');
+
+        if (isVoidEl) {
+          return ("<" + tagOpening$2 + ">");
+        } else {
+          return ("<" + tagOpening$2 + "></" + (this.tagName) + ">");
+        }
+      }
+    };
+
+    HTMLElement.prototype.addEventListener = function addEventListener () {};
+
+    HTMLElement.prototype.removeEventListener = function removeEventListener () {};
+
+    HTMLElement.prototype.setAttribute = function setAttribute (attr, value) {
+      var this$1 = this;
+
+      if (attr === 'class') {
+        this.classList.splice(0, this.classList.length);
+        var classes = value.split(' ');
+        classes.forEach(function (cls) { return this$1.classList.add(cls); });
+        return;
+      }
+
+      var propertyName = attr;
+
+      if (/^data-/.test(attr)) {
+        propertyName = dashToCamel(attr);
+        this.dataset[propertyName] = value;
+
+        Object.defineProperty(this, propertyName, {
+          get: (function (t, a) {
+            return function () { return t.dataset[a]; };
+          })(this, propertyName),
+          enumerable: false,
+          configurable: true
+        });
+      } else if (!hasOwnProperty(this, propertyName)) {
+        Object.defineProperty(this, propertyName, {
+          get: (function (t, a) {
+            return function () { return t.attributes[a]; };
+          })(this, propertyName),
+          enumerable: true,
+          configurable: true
+        });
+      }
+
+      this.attributes[attr] = value;
+    };
+
+    HTMLElement.prototype.getAttribute = function getAttribute (attr) {
+      return this.attributes[attr] || this[attr] || null;
+    };
+
+    HTMLElement.prototype.removeAttribute = function removeAttribute (attr) {
+      if (attr === 'class') {
+        this.classList.reset();
+        return;
+      }
+      if (/^data-/.test(attr)) {
+        delete this.dataset[dashToCamel(attr)];
+      }
+      // FIXME: this does not remove attributes set directly on the element
+      if (hasOwnProperty(this.attributes, attr)) {
+        delete this.attributes[attr];
+        delete this[attr];
+      }
+    };
+
+    HTMLElement.prototype.appendChild = function appendChild (child) {
+      if (this.isVoidEl) {
+        return child; // Silently ignored
+      }
+      child.parentNode = this;
+      for (var i = 0; i < this.childNodes.length; i++) {
+        if (this.childNodes[i] === child) {
+          this.childNodes.splice(i, 1);
+        }
+      }
+      this.childNodes.push(child);
+      return child;
+    };
+
+    HTMLElement.prototype.insertBefore = function insertBefore (child, before) {
+      var this$1 = this;
+
+      if (this.isVoidEl) {
+        return child; // Silently ignored
+      }
+      child.parentNode = this;
+      if (before == null) {
+        this$1.childNodes.push(child);
+      } else {
+        for (var i = 0; i < this.childNodes.length; i++) {
+          if (this$1.childNodes[i] === before) {
+            this$1.childNodes.splice(i++, 0, child);
+          } else if (this$1.childNodes[i] === child) {
+            this$1.childNodes.splice(i, 1);
+          }
+        }
+      }
+      return child;
+    };
+
+    HTMLElement.prototype.replaceChild = function replaceChild (child, replace) {
+      if (this.isVoidEl) {
+        return replace; // Silently ignored
+      }
+      child.parentNode = this;
+      for (var i = 0; i < this.childNodes.length; i++) {
+        if (this.childNodes[i] === replace) {
+          this.childNodes[i] = child;
+        }
+      }
+      return replace;
+    };
+
+    HTMLElement.prototype.removeChild = function removeChild (child) {
+      if (this.isVoidEl) {
+        return child; // Silently ignored
+      }
+      child.parentNode = null;
+      for (var i = 0; i < this.childNodes.length; i++) {
+        if (this.childNodes[i] === child) {
+          this.childNodes.splice(i, 1);
+        }
+      }
+      return child;
+    };
+
+    HTMLElement.prototype.getElementsByTagName = function getElementsByTagName (tagName) {
+      var lowerTagName = tagName.toLowerCase();
+
+      if (this.isVoidEl || this.childNodes.length === 0) {
+        return [];
+      }
+
+      return this.childNodes.reduce(function (results, child) {
+        if (child.getElementsByTagName) {
+          if (lowerTagName === '*' || child.tagName === lowerTagName) {
+            return results.concat(child, child.getElementsByTagName(lowerTagName));
+          }
+
+          return results.concat(child.getElementsByTagName(lowerTagName));
+        } else {
+          return results;
+        }
+      }, []);
+    };
+
+    HTMLElement.prototype.getElementsByClassName = function getElementsByClassName (classNames) {
+      if (!Array.isArray(classNames)) {
+        return this.getElementsByClassName(
+          String(classNames)
+            .split(' ')
+            .map(function (cn) { return cn.trim(); })
+            .filter(function (cn) { return cn.length > 0; }));
+      } else if (classNames.length === 0) {
+        return [];
+      }
+
+      return this.childNodes.reduce(function (results, child) {
+        var childMatches = classNames.every(function (cn) { return child.classList.contains(cn); });
+
+        return (childMatches
+          ? results.concat(child, child.getElementsByClassName(classNames))
+          : results.concat(child.getElementsByClassName(classNames)));
+      }, []);
+    };
+
+    HTMLElement.prototype.querySelector = function querySelector$1 (query) {
+      return querySelector(query, this);
+    };
+
+    HTMLElement.prototype.querySelectorAll = function querySelectorAll$1 (query) {
+      return querySelectorAll(query, this);
+    };
+
+    HTMLElement.prototype.matches = function matches (query) {
+      var terms = parseSelector(query);
+      if (terms == null || terms.length > 1) {
+        return false;
+      }
+      return elementMatches(this, terms[0]);
+    };
+
+    prototypeAccessors.classList.get = function () {
+      if (!this._classList) {
+        this._classList = new ClassList(this);
+      }
+      return this._classList;
+    };
+
+    prototypeAccessors.className.set = function (v) {
+      this.classList.reset(v);
+    };
+
+    prototypeAccessors.className.get = function () {
+      return this._classList == null ? '' : this._classList.toString();
+    };
+
+    prototypeAccessors.innerHTML.get = function () {
+      return this._innerHTML || this.render(true);
+    };
+
+    prototypeAccessors.innerHTML.set = function (value) {
+      this._innerHTML = value;
+    };
+
+    prototypeAccessors.outerHTML.get = function () {
+      return this.render();
+    };
+
+    prototypeAccessors.firstChild.get = function () {
+      return this.childNodes[0] || null;
+    };
+
+    prototypeAccessors.textContent.get = function () {
+      return this.childNodes.filter(function (node) {
+        return node instanceof TextNode;
+      }).map(function (node) { return node.textContent; }).join('');
+    };
+
+    prototypeAccessors.textContent.set = function (str) {
+      this.childNodes = [
+        new TextNode(str)
+      ];
+    };
+
+    prototypeAccessors.nextSibling.get = function () {
+      var siblings = this.parentNode.childNodes;
+
+      for (var i = 0; i < siblings.length; i++) {
+        if (siblings[i] === this) {
+          return siblings[i + 1];
+        }
+      }
+      return null;
+    };
+
+    Object.defineProperties( HTMLElement.prototype, prototypeAccessors );
+
+    return HTMLElement;
+  }(Node));
+
+  Object.defineProperty(HTMLElement.prototype, '_classList', {
+    value: null,
+    enumerable: false,
+    configurable: false,
+    writable: true
+  });
+
+  var noOp = function () { return undefined; };
+  var noOpMethods = 'blur click focus';
+
+  noOpMethods.split(' ').forEach(function (fn) { return (HTMLElement.prototype[fn] = noOp); });
 
   var SVGElement = /*@__PURE__*/(function (HTMLElement) {
     function SVGElement () {
@@ -387,370 +765,18 @@
     return SVGElement;
   }(HTMLElement));
 
-  HTMLElement.prototype = Object.create(Node.prototype);
-  HTMLElement.prototype.constructor = HTMLElement;
-
-  var noOp = function () { return undefined; };
-  var noOpMethods = 'blur click focus';
-
-  noOpMethods.split(' ').forEach(function (fn) { return (HTMLElement.prototype[fn] = noOp); });
-
-  var shouldNotRender = 'tagName view nodeType isVoidEl parent parentNode childNodes isMounted'.split(' ').reduce(function (lookup, key) {
-    lookup[key] = true;
-    return lookup;
-  }, {});
-
-  HTMLElement.prototype.render = function (inner) {
-    var this$1 = this;
-
-    var isVoidEl = this.isVoidEl;
-    var attributes = [];
-
-    var hasChildren = false;
-    var content = '';
-
-    for (var key in this) {
-      if (key === 'isMounted' ||
-       key === 'style' ||
-       key === 'attributes' ||
-       key === 'dataset' ||
-       key === '_classList' ||
-       !hasOwnProperty(this, key)) {
-        continue;
-      }
-      if (shouldNotRender[key]/* || !isVoidEl */) { // FIXME: no need?
-        if (this.childNodes.length) {
-          hasChildren = true;
-        }
-      } else if (key === '_innerHTML') {
-        content = this._innerHTML;
-      } else if (!shouldNotRender[key]) {
-        // Attributes will be rendered later; avoid rendering them twice.
-        if (key in this.attributes) {
-          continue;
-        }
-        if (typeof this[key] === 'function') {
-          continue;
-        }
-
-        var value = (void 0);
-        switch (typeof this[key]) {
-          case 'string':
-          case 'number':
-            value = '"' + this[key] + '"';
-            break;
-
-          default:
-            // FIXME: is it better to use 'data-${key}' for jQuery .data(key) ?
-            value = "'" + JSON.stringify(this[key]) + "'";
-        }
-        attributes.push(key + '=' + value);
-      }
-    }
-
-    if (this.className) {
-      attributes.push('class="' + this.className + '"');
-    }
-
-    var cssText = this.style.cssText;
-    if (cssText.length > 0) {
-      attributes.push('style="' + cssText + '"');
-    }
-
-    var attrNames = Object.keys(this.attributes);
-    if (attrNames.length > 0) {
-      attrNames
-        .filter(function (e) { return e !== 'style' && e !== '_classList'; })
-        .map(function (e) { return attributes.push(e + '="' + this$1.attributes[e] + '"'); });
-    }
-
-    if (inner) {
-      if (!isVoidEl && hasChildren) {
-        return this.childNodes.map(childRenderer).join('');
-      } else if (!isVoidEl && content) {
-        return content;
-      } else {
-        return '';
-      }
-    }
-
-    if (!isVoidEl && hasChildren) {
-      var tagName = this.tagName;
-      var tagOpening = [tagName].concat(attributes).join(' ');
-      var children = this.childNodes.map(childRenderer).join('');
-
-      return ("<" + tagOpening + ">" + children + "</" + tagName + ">");
-    } else if (!isVoidEl && content) {
-      var tagName$1 = this.tagName;
-      var tagOpening$1 = [this.tagName].concat(attributes).join(' ');
-
-      return ("<" + tagOpening$1 + ">" + content + "</" + tagName$1 + ">");
-    } else {
-      var tagName$2 = this.tagName;
-      var tagOpening$2 = [tagName$2].concat(attributes).join(' ');
-
-      if (isVoidEl) {
-        return ("<" + tagOpening$2 + ">");
-      } else {
-        return ("<" + tagOpening$2 + "></" + (this.tagName) + ">");
-      }
-    }
-  };
-
-  HTMLElement.prototype.addEventListener = function () {};
-  HTMLElement.prototype.removeEventListener = function () {};
-
-  HTMLElement.prototype.setAttribute = function (attr, value) {
-    var this$1 = this;
-
-    if (attr === 'class') {
-      this.classList.splice(0, this.classList.length);
-      var classes = value.split(' ');
-      classes.forEach(function (cls) { return this$1.classList.add(cls); });
-      return;
-    }
-
-    var propertyName = attr;
-
-    if (/^data-/.test(attr)) {
-      propertyName = dashToCamel(attr);
-      this.dataset[propertyName] = value;
-
-      Object.defineProperty(this, propertyName, {
-        get: (function (t, a) {
-          return function () { return t.dataset[a]; };
-        })(this, propertyName),
-        enumerable: false,
-        configurable: true
-      });
-    } else if (!hasOwnProperty(this, propertyName)) {
-      Object.defineProperty(this, propertyName, {
-        get: (function (t, a) {
-          return function () { return t.attributes[a]; };
-        })(this, propertyName),
-        enumerable: true,
-        configurable: true
-      });
-    }
-
-    this.attributes[attr] = value;
-  };
-
-  HTMLElement.prototype.getAttribute = function (attr) {
-    return this.attributes[attr] || this[attr] || null;
-  };
-
-  HTMLElement.prototype.removeAttribute = function (attr) {
-    if (attr === 'class') {
-      this.classList.reset();
-      return;
-    }
-    if (/^data-/.test(attr)) {
-      delete this.dataset[dashToCamel(attr)];
-    }
-    // FIXME: this does not remove attributes set directly on the element
-    if (hasOwnProperty(this.attributes, attr)) {
-      delete this.attributes[attr];
-      delete this[attr];
-    }
-  };
-
-  HTMLElement.prototype.appendChild = function (child) {
-    if (this.isVoidEl) {
-      return child; // Silently ignored
-    }
-    child.parentNode = this;
-    for (var i = 0; i < this.childNodes.length; i++) {
-      if (this.childNodes[i] === child) {
-        this.childNodes.splice(i, 1);
-      }
-    }
-    this.childNodes.push(child);
-    return child;
-  };
-
-  HTMLElement.prototype.insertBefore = function (child, before) {
-    var this$1 = this;
-
-    if (this.isVoidEl) {
-      return child; // Silently ignored
-    }
-    child.parentNode = this;
-    if (before == null) {
-      this$1.childNodes.push(child);
-    } else {
-      for (var i = 0; i < this.childNodes.length; i++) {
-        if (this$1.childNodes[i] === before) {
-          this$1.childNodes.splice(i++, 0, child);
-        } else if (this$1.childNodes[i] === child) {
-          this$1.childNodes.splice(i, 1);
-        }
-      }
-    }
-    return child;
-  };
-
-  HTMLElement.prototype.replaceChild = function (child, replace) {
-    if (this.isVoidEl) {
-      return replace; // Silently ignored
-    }
-    child.parentNode = this;
-    for (var i = 0; i < this.childNodes.length; i++) {
-      if (this.childNodes[i] === replace) {
-        this.childNodes[i] = child;
-      }
-    }
-    return replace;
-  };
-
-  HTMLElement.prototype.removeChild = function (child) {
-    if (this.isVoidEl) {
-      return child; // Silently ignored
-    }
-    child.parentNode = null;
-    for (var i = 0; i < this.childNodes.length; i++) {
-      if (this.childNodes[i] === child) {
-        this.childNodes.splice(i, 1);
-      }
-    }
-    return child;
-  };
-
-  HTMLElement.prototype.getElementsByTagName = function (tagName) {
-    var lowerTagName = tagName.toLowerCase();
-
-    if (this.isVoidEl || this.childNodes.length === 0) {
-      return [];
-    }
-
-    return this.childNodes.reduce(function (results, child) {
-      if (child.getElementsByTagName) {
-        if (lowerTagName === '*' || child.tagName === lowerTagName) {
-          return results.concat(child, child.getElementsByTagName(lowerTagName));
-        }
-
-        return results.concat(child.getElementsByTagName(lowerTagName));
-      } else {
-        return results;
-      }
-    }, []);
-  };
-
-  HTMLElement.prototype.getElementsByClassName = function (classNames) {
-    if (!Array.isArray(classNames)) {
-      return this.getElementsByClassName(
-        String(classNames)
-          .split(' ')
-          .map(function (cn) { return cn.trim(); })
-          .filter(function (cn) { return cn.length > 0; }));
-    } else if (classNames.length === 0) {
-      return [];
-    }
-
-    return this.childNodes.reduce(function (results, child) {
-      var childMatches = classNames.every(function (cn) { return child.classList.contains(cn); });
-
-      return (childMatches
-        ? results.concat(child, child.getElementsByClassName(classNames))
-        : results.concat(child.getElementsByClassName(classNames)));
-    }, []);
-  };
-
-  HTMLElement.prototype.querySelector = function (query) {
-    return querySelector(query, this);
-  };
-
-  HTMLElement.prototype.querySelectorAll = function (query) {
-    return querySelectorAll(query, this);
-  };
-
-  HTMLElement.prototype.matches = function (query) {
-    var terms = parseSelector(query);
-    if (terms == null || terms.length > 1) {
-      return false;
-    }
-    return elementMatches(this, terms[0]);
-  };
-
-  Object.defineProperties(HTMLElement.prototype, {
-    _classList: {
-      value: null,
-      enumerable: false,
-      configurable: false,
-      writable: true
-    },
-    classList: {
-      get: function () {
-        if (!this._classList) {
-          this._classList = new ClassList(this);
-        }
-        return this._classList;
-      }
-    },
-    className: {
-      set: function (v) {
-        this.classList.reset(v);
-      },
-      get: function () {
-        return this._classList == null ? '' : this._classList.toString();
-      }
-    },
-    innerHTML: {
-      get: function () {
-        return this._innerHTML || this.render(true);
-      },
-      set: function (value) {
-        this._innerHTML = value;
-      }
-    },
-    outerHTML: {
-      get: function () {
-        return this.render();
-      }
-    },
-    firstChild: {
-      get: function () {
-        return this.childNodes[0] || null;
-      }
-    },
-    textContent: {
-      get: function () {
-        return this.childNodes.filter(function (node) {
-          return node instanceof TextNode;
-        }).map(function (node) { return node.textContent; }).join('');
-      },
-      set: function (str) {
-        this.childNodes = [
-          new TextNode(str)
-        ];
-      }
-    },
-    nextSibling: {
-      get: function () {
-        var siblings = this.parentNode.childNodes;
-
-        for (var i = 0; i < siblings.length; i++) {
-          if (siblings[i] === this) {
-            return siblings[i + 1];
-          }
-        }
-        return null;
-      }
-    }
-  });
-
   function childRenderer (child) {
     return child.render();
   }
 
-  function Document () {
+  var Document = function Document () {
     this.documentElement = this.createElement('html');
     this.head = this.documentElement.appendChild(this.createElement('head'));
     this.body = this.documentElement.appendChild(this.createElement('body'));
     this.nodeType = 9;
-  }
+  };
 
-  Document.prototype.createElement = function (tagName) {
+  Document.prototype.createElement = function createElement (tagName) {
     var element = new HTMLElement({
       tagName: tagName
     });
@@ -767,7 +793,7 @@
     return element;
   };
 
-  Document.prototype.createElementNS = function (ns, tagName) {
+  Document.prototype.createElementNS = function createElementNS (ns, tagName) {
     var element;
     if (tagName === 'http://www.w3.org/2000/svg') {
       element = new SVGElement({
@@ -791,11 +817,11 @@
     return element;
   };
 
-  Document.prototype.createDocumentFragment = function () {
+  Document.prototype.createDocumentFragment = function createDocumentFragment () {
     return (new Document()).body;
   };
 
-  Document.prototype.createTextNode = function (text) {
+  Document.prototype.createTextNode = function createTextNode (text) {
     var textNode = new TextNode(text);
 
     // element.textNode = this;
@@ -810,7 +836,7 @@
     return textNode;
   };
 
-  Document.prototype.getElementsByTagName = function (tagName) {
+  Document.prototype.getElementsByTagName = function getElementsByTagName (tagName) {
     var lowerTagName = tagName.toLowerCase();
 
     if (lowerTagName === 'html') {
@@ -822,8 +848,8 @@
       : this.documentElement.getElementsByTagName(lowerTagName));
   };
 
-  Document.prototype.getElementsByClassName = function (classNames) {
-    var this$1 = this;
+  Document.prototype.getElementsByClassName = function getElementsByClassName (classNames) {
+      var this$1 = this;
 
     if (!Array.isArray(classNames)) {
       return this.getElementsByClassName(
@@ -846,7 +872,7 @@
     }, documentNodeMatches ? [this.documentElement] : []);
   };
 
-  Document.prototype.getElementById = function (id) {
+  Document.prototype.getElementById = function getElementById (id) {
     if (this.documentElement.id === id) {
       return this.documentElement;
     }
@@ -872,11 +898,11 @@
     return matchIdInNodes(id, this.documentElement.childNodes);
   };
 
-  Document.prototype.querySelector = function (query) {
+  Document.prototype.querySelector = function querySelector$1 (query) {
     return querySelector(query, this);
   };
 
-  Document.prototype.querySelectorAll = function (query) {
+  Document.prototype.querySelectorAll = function querySelectorAll$1 (query) {
     return querySelectorAll(query, this);
   };
 
