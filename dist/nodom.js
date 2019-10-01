@@ -506,10 +506,6 @@
       }
     };
 
-    HTMLElement.prototype.addEventListener = function addEventListener () {};
-
-    HTMLElement.prototype.removeEventListener = function removeEventListener () {};
-
     HTMLElement.prototype.setAttribute = function setAttribute (attr, value) {
       var this$1 = this;
 
@@ -748,10 +744,9 @@
     writable: true
   });
 
-  var noOp = function () { return undefined; };
-  var noOpMethods = 'blur click focus';
-
-  noOpMethods.split(' ').forEach(function (fn) { return (HTMLElement.prototype[fn] = noOp); });
+  'addEventListener blur click focus removeEventListener'.split(' ').forEach(function (fn) {
+    HTMLElement.prototype[fn] = function () { return undefined; };
+  });
 
   var SVGElement = /*@__PURE__*/(function (HTMLElement) {
     function SVGElement () {
