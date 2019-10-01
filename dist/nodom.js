@@ -378,6 +378,8 @@
     return lookup;
   }, {});
 
+  var childRenderer = function (child) { return child.render(); };
+
   var HTMLElement = /*@__PURE__*/(function (Node) {
     function HTMLElement (options) {
       Node.call(this);
@@ -759,10 +761,6 @@
 
     return SVGElement;
   }(HTMLElement));
-
-  function childRenderer (child) {
-    return child.render();
-  }
 
   var Document = function Document () {
     this.documentElement = this.createElement('html');
