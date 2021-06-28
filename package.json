@@ -30,6 +30,6 @@
     "rollup-plugin-buble": "~0.19.8",
     "semistandard": "~14.2.0",
     "tape": "^4.11.0",
-    "uglify-js": "~3.6.0"
+    "uglify-js": "~3.13.10"
   }
 }
